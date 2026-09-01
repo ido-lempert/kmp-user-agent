@@ -1,0 +1,56 @@
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created, ready for development
+#   - in-progress: Developer actively working on implementation
+#   - review: Implementation complete, ready for review
+#   - done: Story completed
+
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when its first story starts (via build's sprint sync)
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates the next story after the previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; the status view surfaces open ones
+generated: 09-01-2026 11:00
+last_updated: 09-01-2026 13:15
+project: kmp-user-agent
+project_key: NOKEY
+tracking_system: file-system
+story_location: 
+  /Users/idolempert/AndroidStudioProjects/kmp-user-agent/_bmad-output/implementation-artifacts
+development_status:
+  epic-1: in-progress
+  1-1-parse-browser-engine-from-a-user-agent-string: review
+  1-2-parse-os-from-a-user-agent-string: backlog
+  1-3-parse-device-info-from-a-user-agent-string: backlog
+  1-4-validate-parsing-across-all-four-targets: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-generate-a-user-agent-string-from-browser-engine-data: backlog
+  2-2-generate-a-user-agent-string-including-os-device-data: backlog
+  2-3-validate-generation-across-all-four-targets: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-publish-the-library-to-maven-central: backlog
+  3-2-publish-the-js-package-to-npm: backlog
+  3-3-verify-fresh-project-consumption-of-the-published-library: backlog
+  epic-3-retrospective: optional
