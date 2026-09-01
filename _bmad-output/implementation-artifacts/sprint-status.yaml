@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-01-2026 11:00
-last_updated: 09-01-2026 21:10
+last_updated: 09-01-2026 22:30
 project: kmp-user-agent
 project_key: NOKEY
 tracking_system: file-system
@@ -45,7 +45,7 @@ development_status:
 
   epic-2: in-progress
   2-1-generate-a-user-agent-string-from-browser-engine-data: review
-  2-2-generate-a-user-agent-string-including-os-device-data: backlog
+  2-2-generate-a-user-agent-string-including-os-device-data: review
   2-3-validate-generation-across-all-four-targets: backlog
   epic-2-retrospective: optional
 

@@ -43,5 +43,13 @@
   evidence: Not reachable via any real `UserAgentParser.parse()` output (which only ever produces digit/dot version strings), so only exploitable via a directly hand-constructed `UserAgentInfo` with malformed data; the API's own callers are trusted (not attacker-controlled HTTP input the way `parse()`'s UA string is), so this is low priority for v1.
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-1-generate-a-user-agent-string-from-browser-engine-data.md`
-  summary: Each of `UserAgentGenerator`'s four per-family templates hardcodes its parenthetical/segment structure (e.g. `(KHTML, like Gecko)`, `(rv:$bv)`) with no seam for inserting an OS token into the same parenthetical, which real UA strings for these families normally include.
-  evidence: Story 2.2 (OS/device generation) will need to extend or restructure these exact templates rather than being able to purely append new segments — worth keeping in mind when planning that story, not a defect in this one.
+  summary: `UserAgentGenerator`'s Windows OS-token support (added by Story 2.2) recognizes only the exact version `"10"`; Windows 11 (which reports the same `"Windows NT 10.0"` UA convention as Windows 10 in real browsers) and older versions (8.1/7/XP/Vista) produce no OS token at all.
+  evidence: Consistent with the same "four representative families, pragmatic v1 coverage" scope already established for browsers; not a defect, but worth widening once real-world usage shows which Windows versions matter most for generation.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-1-generate-a-user-agent-string-from-browser-engine-data.md`
+  summary: `UserAgentGenerator.generate`'s existing lack of content sanitization for `browser.version`/`engine.version` (already deferred) extends to `device.model` (added by Story 2.2) — a model string containing `;`, `(`, or `)` would corrupt the generated OS parenthetical's structure.
+  evidence: Same trust boundary as the existing entry — not reachable via real `UserAgentParser.parse()` output, only via a directly hand-constructed `UserAgentInfo`/`Device`; low priority for v1.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-2-generate-a-user-agent-string-including-os-device-data.md`
+  summary: Generating `os = Component("Android", version)` with `device = null` produces a token (e.g. `"Linux; Android 12"`) that still contains the bare word "Android", which a vendored `device_parsers` catch-all rule matches, incidentally producing `Device("Generic", "Smartphone", "Generic Smartphone")` on parse-back even though `device` was `null` in the original input.
+  evidence: Mirrors the already-intentional "Mac/iPhone incidentally recover `device`" behavior this story documents, but wasn't itself documented or asserted for the Android-without-device case; confirmed via review, not yet demonstrated as harmful (the AC only requires `device` to survive round-trip when it was actually supplied), but worth an explicit test/doc note if it ever needs to change.
