@@ -1,0 +1,7 @@
+TEAM_ID=
+
+PRODUCT_NAME=kmp-user-agent
+PRODUCT_BUNDLE_IDENTIFIER=site.lempert.kmp_user_agent.kmp-user-agent$(TEAM_ID)
+
+CURRENT_PROJECT_VERSION=1
+MARKETING_VERSION=1.0
