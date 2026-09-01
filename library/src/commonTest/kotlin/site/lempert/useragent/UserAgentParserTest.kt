@@ -1,6 +1,7 @@
 package site.lempert.useragent
 
 import site.lempert.useragent.generated.browserRules
+import site.lempert.useragent.generated.deviceRules
 import site.lempert.useragent.generated.osRules
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -46,7 +47,10 @@ class UserAgentParserTest {
         assertEquals(Component("Safari", "17.5"), info.browser)
         assertEquals(Component("WebKit", "605.1.15"), info.engine)
         assertEquals(Component("Mac OS X", "10.15.7"), info.os)
-        assertNull(info.device)
+        // Matches the catch-all `'Mac OS'` device rule (regexes.yaml ~line 6263,
+        // deliberately placed last in `device_parsers`): now that device detection
+        // is implemented (this story), a desktop Mac is itself a recognized device.
+        assertEquals(Device(brand = "Apple", model = "Mac", name = "Mac"), info.device)
     }
 
     @Test
@@ -181,6 +185,132 @@ class UserAgentParserTest {
             assertTrue(
                 !Regex(rule.pattern).containsMatchIn(""),
                 "OS rule with pattern '${rule.pattern}' unexpectedly matches an empty string",
+            )
+        }
+    }
+
+    @Test
+    fun iphoneDevice() {
+        val ua =
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 " +
+                "(KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
+
+        val info = UserAgentParser.parse(ua)
+
+        // First-matching device_parsers rule for this UA is the bare `(iPhone)(?:;| Simulator;)`
+        // rule (regexes.yaml ~line 5730): all three replacement fields resolve to the same
+        // captured token, with no positional-group fallback involved.
+        assertEquals(Device(brand = "Apple", model = "iPhone", name = "iPhone"), info.device)
+    }
+
+    @Test
+    fun pixelDevice() {
+        val ua =
+            "Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) " +
+                "Chrome/91.0.4472.120 Mobile Safari/537.36"
+
+        val info = UserAgentParser.parse(ua)
+
+        // First-matching device_parsers rule for this UA is the Google Pixel rule
+        // (regexes.yaml ~line 3160): `device_replacement`/`model_replacement` both '$2'
+        // (the "Pixel 6" capture group), `brand_replacement` the literal 'Google'.
+        assertEquals(Device(brand = "Google", model = "Pixel 6", name = "Pixel 6"), info.device)
+    }
+
+    @Test
+    fun caseInsensitiveDeviceRuleMatchesNonCanonicalCasing() {
+        // Exercises a `regex_flag: 'i'` rule (the mobile-spider-crawler rule near
+        // regexes.yaml:2209..2213), whose replacement fields are all hardcoded literals
+        // ('Spider'/'Spider'/'Smartphone'), so the output is identical regardless of the
+        // input's casing -- only whether the pattern *matches at all* depends on
+        // RegexOption.IGNORE_CASE being applied for this rule.
+        val canonicallyCasedInfo = UserAgentParser.parse("iPhone test something Bot-Mobile")
+        val nonCanonicallyCasedInfo = UserAgentParser.parse("iphone test something bot-mobile")
+
+        val expected = Device(brand = "Spider", model = "Smartphone", name = "Spider")
+        assertEquals(expected, canonicallyCasedInfo.device)
+        assertEquals(expected, nonCanonicallyCasedInfo.device)
+    }
+
+    @Test
+    fun desktopBrowserHasNoDevice() {
+        val ua =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
+                "Chrome/128.0.6613.120 Safari/537.36"
+
+        val info = UserAgentParser.parse(ua)
+
+        assertNull(info.device)
+    }
+
+    @Test
+    fun deviceNameIsNullWhenDeviceReplacementIsAbsentEvenWithNoPositionalFallback() {
+        // Exercises the deliberate divergence documented on detectDevice: unlike
+        // browser/OS, an absent replacement field never falls back to a positional
+        // capture group. This UA matches a real vendored rule (regexes.yaml's
+        // "Generic_Android" Mobile-Safari rule) that gives brand_replacement/
+        // model_replacement but no device_replacement, even though the pattern
+        // does capture a usable group -- proving name stays null rather than
+        // silently adopting that capture.
+        val ua =
+            "Mozilla/5.0 (Linux; Android 5.0; SM-UNKNOWN9999) AppleWebKit/537.36 " +
+                "(KHTML, like Gecko) Chrome/40.0 Mobile Safari/537.36"
+
+        val info = UserAgentParser.parse(ua)
+
+        assertEquals(Device(brand = "Generic_Android", model = "SM-UNKNOWN9999", name = null), info.device)
+    }
+
+    @Test
+    fun characterClassEscapedHyphenIsNotTreatedAsARange() {
+        // Regression test for a normalizePatternForAllTargets bug found during
+        // this story's review: stripping `\-` unconditionally (correct outside a
+        // character class, wrong inside one) turned the vendored BIRD rule's
+        // `[ \-\.]` into `[ -\.]`, an unintended ascending range covering every
+        // character from space to `.` (including e.g. `!`). The fix tracks
+        // character-class context so `\-` is preserved there.
+        //
+        // "BIRD!X100" must NOT match via the BIRD rule's widened range -- it
+        // correctly falls through to a later, unrelated `device_parsers` rule
+        // (a generic case-insensitive "starts with a known feature-phone
+        // prefix" catch-all that happens to include "bird" as one of dozens of
+        // alternatives, regexes.yaml ~line 6229) rather than reporting a
+        // Bird-brand device. "BIRD-X100"/"BIRD.X100"/"BIRD X100" (the three
+        // characters the class actually intends) must still match the
+        // BIRD-specific rule.
+        assertEquals(
+            Device(brand = "Generic", model = "Feature Phone", name = "Generic Feature Phone"),
+            UserAgentParser.parse("BIRD!X100").device,
+        )
+
+        val expected = Device(brand = "Bird", model = "X100", name = "Bird X100")
+        assertEquals(expected, UserAgentParser.parse("BIRD X100").device)
+        assertEquals(expected, UserAgentParser.parse("BIRD-X100").device)
+        assertEquals(expected, UserAgentParser.parse("BIRD.X100").device)
+    }
+
+    @Test
+    fun generatedDeviceRuleTableIsNonEmptyAndEveryPatternCompilesOnThisTarget() {
+        assertTrue(deviceRules.isNotEmpty())
+        for (rule in deviceRules) {
+            // Must not throw: same normalized pattern set that must compile
+            // identically under JVM/Native regex and JS's mandatory `u`-flag
+            // ECMAScript dialect, now also exercising `regex_flag`-driven options.
+            val options = if (rule.regexFlag == "i") setOf(RegexOption.IGNORE_CASE) else emptySet()
+            Regex(rule.pattern, options)
+        }
+    }
+
+    @Test
+    fun noGeneratedDeviceRuleMatchesAnEmptyString() {
+        // Guards the "empty input -> null device" contract against a future
+        // vendored-data refresh accidentally introducing an all-optional
+        // pattern that matches everything, including "".
+        for (rule in deviceRules) {
+            val options = if (rule.regexFlag == "i") setOf(RegexOption.IGNORE_CASE) else emptySet()
+            assertTrue(
+                !Regex(rule.pattern, options).containsMatchIn(""),
+                "Device rule with pattern '${rule.pattern}' unexpectedly matches an empty string",
             )
         }
     }

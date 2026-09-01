@@ -11,12 +11,12 @@ plugins {
 // Build-time code generation: vendor uap-core's regexes.yaml -> commonMain Kotlin
 //
 // See library/vendor/uap-core/regexes.yaml and library/NOTICE. The
-// `user_agent_parsers` and `os_parsers` sections are consumed here;
-// `device_parsers` is added by a later story. This is a hand-rolled parser
-// rather than a YAML library dependency: uap-core's regexes.yaml has a very
-// regular structure (a flat list of maps, each a single-line single-quoted
-// `regex` scalar plus optional single-line single-quoted `*_replacement`
-// scalars), so a small line-based parser is sufficient.
+// `user_agent_parsers`, `os_parsers`, and `device_parsers` sections are all
+// consumed here. This is a hand-rolled parser rather than a YAML library
+// dependency: uap-core's regexes.yaml has a very regular structure (a flat
+// list of maps, each a single-line single-quoted `regex` scalar plus
+// optional single-line single-quoted `*_replacement`/`regex_flag` scalars),
+// so a small line-based parser is sufficient.
 // =============================================================================
 
 // Declared as a top-level `object` (not top-level `fun`s) on purpose: top-level
@@ -39,6 +39,14 @@ object UapCoreCodegen {
         val v1Replacement: String?,
         val v2Replacement: String?,
         val v3Replacement: String?,
+    )
+
+    data class DeviceRule(
+        val pattern: String,
+        val regexFlag: String?,
+        val deviceReplacement: String?,
+        val brandReplacement: String?,
+        val modelReplacement: String?,
     )
 
     private fun unescapeYamlSingleQuoted(value: String): String = value.replace("''", "'")
@@ -152,6 +160,57 @@ object UapCoreCodegen {
         return rules
     }
 
+    /** Parses the `device_parsers:` section of a vendored uap-core `regexes.yaml`. */
+    fun parseDeviceParsers(yamlText: String): List<DeviceRule> {
+        val lines = yamlText.lines()
+        val startIndex = lines.indexOfFirst { it.trim() == "device_parsers:" }
+        require(startIndex >= 0) { "Could not find 'device_parsers:' section in regexes.yaml" }
+
+        val rules = mutableListOf<DeviceRule>()
+        var pattern: String? = null
+        var regexFlag: String? = null
+        var device: String? = null
+        var brand: String? = null
+        var model: String? = null
+
+        fun flush() {
+            val currentPattern = pattern
+            if (currentPattern != null) {
+                rules += DeviceRule(currentPattern, regexFlag, device, brand, model)
+            }
+            pattern = null
+            regexFlag = null
+            device = null
+            brand = null
+            model = null
+        }
+
+        for (index in (startIndex + 1) until lines.size) {
+            val line = lines[index]
+            val trimmed = line.trim()
+            if (trimmed.isEmpty() || trimmed.startsWith("#")) continue
+            // A subsequent top-level `key:` (no leading whitespace) ends this section.
+            if (!line.startsWith(" ") && !line.startsWith("\t")) break
+
+            when {
+                trimmed.startsWith("- regex:") -> {
+                    flush()
+                    pattern = extractSingleQuotedValue(line, "regex:")
+                }
+                trimmed.startsWith("regex_flag:") ->
+                    regexFlag = extractSingleQuotedValue(line, "regex_flag:")
+                trimmed.startsWith("device_replacement:") ->
+                    device = extractSingleQuotedValue(line, "device_replacement:")
+                trimmed.startsWith("brand_replacement:") ->
+                    brand = extractSingleQuotedValue(line, "brand_replacement:")
+                trimmed.startsWith("model_replacement:") ->
+                    model = extractSingleQuotedValue(line, "model_replacement:")
+            }
+        }
+        flush()
+        return rules
+    }
+
     /**
      * Kotlin/JS's `Regex` hardcodes the ECMAScript `u` (unicode-mode) flag, under
      * which a backslash may only escape a recognized regex metacharacter or a
@@ -170,11 +229,21 @@ object UapCoreCodegen {
         )
         val builder = StringBuilder(pattern.length)
         var index = 0
+        // `\-` is valid ECMAScript `u`-flag syntax *inside* a character class (where a bare
+        // `-` would otherwise form a range) but not outside one, where a bare `-` is always
+        // literal. Stripping it unconditionally -- as earlier versions of this function did --
+        // is correct outside a class but corrupts the class's intended member set when the
+        // hyphen isn't already at a class boundary (e.g. `[ \-\.]` becoming `[ -\.]`, which
+        // silently widens to an unintended ascending range). Track class context so `\-` is
+        // only stripped where doing so is safe.
+        var insideCharacterClass = false
         while (index < pattern.length) {
             val current = pattern[index]
             if (current == '\\' && index + 1 < pattern.length) {
                 val next = pattern[index + 1]
-                if (next.isDigit() || next in allowedAfterBackslash) {
+                if (next == '-' && insideCharacterClass) {
+                    builder.append(current).append(next)
+                } else if (next.isDigit() || next in allowedAfterBackslash) {
                     builder.append(current).append(next)
                 } else {
                     // Not a recognized escape: drop the backslash, keep the literal character.
@@ -182,6 +251,8 @@ object UapCoreCodegen {
                 }
                 index += 2
             } else {
+                if (current == '[') insideCharacterClass = true
+                if (current == ']') insideCharacterClass = false
                 builder.append(current)
                 index += 1
             }
@@ -211,9 +282,16 @@ object UapCoreCodegen {
     fun kotlinNullableStringLiteral(value: String?): String =
         if (value == null) "null" else kotlinStringLiteral(value)
 
-    fun generateSource(browserRules: List<BrowserRule>, osRules: List<OsRule>): String = buildString {
+    fun generateSource(
+        browserRules: List<BrowserRule>,
+        osRules: List<OsRule>,
+        deviceRules: List<DeviceRule>,
+    ): String = buildString {
         appendLine("// Generated by the :library:generateUserAgentRules Gradle task. Do not edit by hand.")
-        appendLine("// Source: vendor/uap-core/regexes.yaml (user_agent_parsers/os_parsers sections), Apache-2.0 -- see NOTICE.")
+        appendLine(
+            "// Source: vendor/uap-core/regexes.yaml (user_agent_parsers/os_parsers/device_parsers sections), " +
+                "Apache-2.0 -- see NOTICE.",
+        )
         appendLine("package site.lempert.useragent.generated")
         appendLine()
         appendLine("internal class BrowserRule(")
@@ -255,6 +333,27 @@ object UapCoreCodegen {
             appendLine("),")
         }
         appendLine(")")
+        appendLine()
+        appendLine("internal class DeviceRule(")
+        appendLine("    val pattern: String,")
+        appendLine("    val regexFlag: String?,")
+        appendLine("    val deviceReplacement: String?,")
+        appendLine("    val brandReplacement: String?,")
+        appendLine("    val modelReplacement: String?,")
+        appendLine(")")
+        appendLine()
+        appendLine("internal val deviceRules: List<DeviceRule> = listOf(")
+        for (rule in deviceRules) {
+            val normalizedPattern = normalizePatternForAllTargets(rule.pattern)
+            append("    DeviceRule(")
+            append(kotlinStringLiteral(normalizedPattern)).append(", ")
+            append(kotlinNullableStringLiteral(rule.regexFlag)).append(", ")
+            append(kotlinNullableStringLiteral(rule.deviceReplacement)).append(", ")
+            append(kotlinNullableStringLiteral(rule.brandReplacement)).append(", ")
+            append(kotlinNullableStringLiteral(rule.modelReplacement))
+            appendLine("),")
+        }
+        appendLine(")")
     }
 }
 
@@ -277,7 +376,8 @@ val generateUserAgentRules = tasks.register("generateUserAgentRules") {
         val yamlText = regexesFile.asFile.readText()
         val browserRules = UapCoreCodegen.parseUserAgentParsers(yamlText)
         val osRules = UapCoreCodegen.parseOsParsers(yamlText)
-        val source = UapCoreCodegen.generateSource(browserRules, osRules)
+        val deviceRules = UapCoreCodegen.parseDeviceParsers(yamlText)
+        val source = UapCoreCodegen.generateSource(browserRules, osRules, deviceRules)
 
         val outputDir = outputDirectory.get().asFile
         outputDir.mkdirs()

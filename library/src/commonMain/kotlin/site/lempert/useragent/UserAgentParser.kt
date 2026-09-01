@@ -1,6 +1,7 @@
 package site.lempert.useragent
 
 import site.lempert.useragent.generated.browserRules
+import site.lempert.useragent.generated.deviceRules
 import site.lempert.useragent.generated.osRules
 
 /**
@@ -8,10 +9,6 @@ import site.lempert.useragent.generated.osRules
  *
  * [parse] never throws: unrecognized input (including an empty string) simply
  * results in `null` fields.
- *
- * `device` is always `null` in this story -- device detection is added in a
- * later story -- but the returned [UserAgentInfo] already carries the full
- * fixed shape so the public API never breaks when it's populated.
  */
 object UserAgentParser {
 
@@ -20,7 +17,7 @@ object UserAgentParser {
             browser = detectBrowser(userAgent),
             engine = detectEngine(userAgent),
             os = detectOs(userAgent),
-            device = null,
+            device = detectDevice(userAgent),
         )
     }
 
@@ -161,6 +158,60 @@ object UserAgentParser {
             val version = listOfNotNull(v1, v2, v3).takeIf { it.isNotEmpty() }?.joinToString(".")
 
             return Component(name = name, version = version)
+        }
+        return null
+    }
+
+    // -------------------------------------------------------------------
+    // Device detection: matches the generated uap-core `device_parsers` rule
+    // table, in file order, first match wins -- same matching/template-
+    // substitution mechanic as browser/OS detection above, but with one
+    // deliberate divergence: none of name/brand/model falls back to a
+    // positional capture group when its replacement field is absent. uap-core's
+    // `device_parsers` data never relies on such a default (unlike
+    // `family_replacement`/`os_replacement`), so adding one here would
+    // fabricate values the vendored data never intends -- see the story's
+    // Design Notes.
+    // -------------------------------------------------------------------
+
+    private data class CompiledDeviceRule(
+        val regex: Regex,
+        val deviceReplacement: String?,
+        val brandReplacement: String?,
+        val modelReplacement: String?,
+    )
+
+    private val compiledDeviceRules: List<CompiledDeviceRule> by lazy {
+        deviceRules.mapNotNull { rule ->
+            try {
+                val options = if (rule.regexFlag == "i") setOf(RegexOption.IGNORE_CASE) else emptySet()
+                CompiledDeviceRule(
+                    regex = Regex(rule.pattern, options),
+                    deviceReplacement = rule.deviceReplacement,
+                    brandReplacement = rule.brandReplacement,
+                    modelReplacement = rule.modelReplacement,
+                )
+            } catch (_: Throwable) {
+                // A pattern that somehow fails to compile on this target is
+                // skipped rather than crashing every future parse() call.
+                null
+            }
+        }
+    }
+
+    private fun detectDevice(userAgent: String): Device? {
+        for (rule in compiledDeviceRules) {
+            val match = try {
+                rule.regex.find(userAgent)
+            } catch (_: Throwable) {
+                null
+            } ?: continue
+
+            val name = rule.deviceReplacement?.let { applyGroupReplacement(it, match) }
+            val brand = rule.brandReplacement?.let { applyGroupReplacement(it, match) }
+            val model = rule.modelReplacement?.let { applyGroupReplacement(it, match) }
+
+            return Device(brand = brand, model = model, name = name)
         }
         return null
     }
