@@ -31,5 +31,17 @@
   evidence: Maintaining a security/compatibility-relevant third-party dataset by hand invites silent drift between the pinned commit and the actual vendored content.
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-1-parse-browser-engine-from-a-user-agent-string.md`
-  summary: Consider enabling Kotlin's `explicitApi()` mode on the `library` module to compiler-enforce the intended public API surface (`UserAgentInfo`, `Component`, `Device`, `UserAgentParser`) as the module grows in later stories.
+  summary: Consider enabling Kotlin's `explicitApi()` mode on the `library` module to compiler-enforce the intended public API surface (`UserAgentInfo`, `Component`, `Device`, `UserAgentParser`, now also `UserAgentGenerator`) as the module grows in later stories.
   evidence: Not required for Story 1.1, which has a small, already-correct public surface, but becomes more valuable as more stories add code to `commonMain`.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-1-generate-a-user-agent-string-from-browser-engine-data.md`
+  summary: `UserAgentGenerator`'s four family templates only recognize exact-match names `"Chrome"`/`"Firefox"`/`"Safari"`/`"Edge"`; real-world `UserAgentParser` output for variant families (e.g. `"Chrome Mobile"`, `"Mobile Safari"`, `"Chromium"`, `"CriOS"`, `"Edge Mobile"`) silently falls through to the bare base string, dropping the browser segment entirely.
+  evidence: Consistent with this story's stated v1 scope (the same four representative desktop families used throughout parsing), and not demonstrated as a defect since generate never claims to cover mobile-variant families — but worth widening once real-world round-trip coverage (Story 2.3 and beyond) surfaces which variants matter most.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-1-generate-a-user-agent-string-from-browser-engine-data.md`
+  summary: `UserAgentGenerator.generate` does not sanitize `browser.version`/`engine.version` content — a version string containing delimiter or structural characters (spaces, slashes, parentheses, newlines) would splice unintended tokens into the generated UA string or fail to round-trip through `UserAgentParser.parse` (whose version-capturing regexes are digit/dot-only).
+  evidence: Not reachable via any real `UserAgentParser.parse()` output (which only ever produces digit/dot version strings), so only exploitable via a directly hand-constructed `UserAgentInfo` with malformed data; the API's own callers are trusted (not attacker-controlled HTTP input the way `parse()`'s UA string is), so this is low priority for v1.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-1-generate-a-user-agent-string-from-browser-engine-data.md`
+  summary: Each of `UserAgentGenerator`'s four per-family templates hardcodes its parenthetical/segment structure (e.g. `(KHTML, like Gecko)`, `(rv:$bv)`) with no seam for inserting an OS token into the same parenthetical, which real UA strings for these families normally include.
+  evidence: Story 2.2 (OS/device generation) will need to extend or restructure these exact templates rather than being able to purely append new segments — worth keeping in mind when planning that story, not a defect in this one.
