@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-01-2026 11:00
-last_updated: 09-01-2026 13:15
+last_updated: 09-01-2026 17:00
 project: kmp-user-agent
 project_key: NOKEY
 tracking_system: file-system
@@ -38,7 +38,7 @@ story_location:
 development_status:
   epic-1: in-progress
   1-1-parse-browser-engine-from-a-user-agent-string: review
-  1-2-parse-os-from-a-user-agent-string: backlog
+  1-2-parse-os-from-a-user-agent-string: review
   1-3-parse-device-info-from-a-user-agent-string: backlog
   1-4-validate-parsing-across-all-four-targets: backlog
   epic-1-retrospective: optional

@@ -1,6 +1,7 @@
 package site.lempert.useragent
 
 import site.lempert.useragent.generated.browserRules
+import site.lempert.useragent.generated.osRules
 
 /**
  * Stateless entry point for parsing a raw User-Agent string into structured data.
@@ -8,9 +9,9 @@ import site.lempert.useragent.generated.browserRules
  * [parse] never throws: unrecognized input (including an empty string) simply
  * results in `null` fields.
  *
- * `os`/`device` are always `null` in this story -- OS and device detection are
- * added in later stories -- but the returned [UserAgentInfo] already carries
- * the full fixed shape so the public API never breaks when they're populated.
+ * `device` is always `null` in this story -- device detection is added in a
+ * later story -- but the returned [UserAgentInfo] already carries the full
+ * fixed shape so the public API never breaks when it's populated.
  */
 object UserAgentParser {
 
@@ -18,7 +19,7 @@ object UserAgentParser {
         return UserAgentInfo(
             browser = detectBrowser(userAgent),
             engine = detectEngine(userAgent),
-            os = null,
+            os = detectOs(userAgent),
             device = null,
         )
     }
@@ -66,8 +67,8 @@ object UserAgentParser {
                 ?: groupValueOrNull(match, 1)
                 ?: continue
 
-            val v1 = rule.v1Replacement ?: groupValueOrNull(match, 2)
-            val v2 = rule.v2Replacement ?: groupValueOrNull(match, 3)
+            val v1 = rule.v1Replacement?.let { applyGroupReplacement(it, match) } ?: groupValueOrNull(match, 2)
+            val v2 = rule.v2Replacement?.let { applyGroupReplacement(it, match) } ?: groupValueOrNull(match, 3)
             val version = listOfNotNull(v1, v2).takeIf { it.isNotEmpty() }?.joinToString(".")
 
             return Component(name = family, version = version)
@@ -85,8 +86,14 @@ object UserAgentParser {
                 if (c == '$' && index + 1 < template.length && template[index + 1].isDigit()) {
                     var digitsEnd = index + 1
                     while (digitsEnd < template.length && template[digitsEnd].isDigit()) digitsEnd++
-                    val groupIndex = template.substring(index + 1, digitsEnd).toInt()
-                    append(groupValueOrNull(match, groupIndex).orEmpty())
+                    val groupIndex = template.substring(index + 1, digitsEnd).toIntOrNull()
+                    if (groupIndex != null) {
+                        append(groupValueOrNull(match, groupIndex).orEmpty())
+                    } else {
+                        // Digit run too large to fit an Int (never happens in practice for
+                        // vendored data, but parse() must never throw regardless of input).
+                        append(template, index, digitsEnd)
+                    }
                     index = digitsEnd
                 } else {
                     append(c)
@@ -101,6 +108,61 @@ object UserAgentParser {
         match.groups[index]?.value
     } catch (_: Throwable) {
         null
+    }
+
+    // -------------------------------------------------------------------
+    // OS detection: matches the generated uap-core `os_parsers` rule table,
+    // in file order, first match wins -- same matching/template-substitution
+    // mechanic as browser detection above, with one extra optional version
+    // segment (v3).
+    // -------------------------------------------------------------------
+
+    private data class CompiledOsRule(
+        val regex: Regex,
+        val osReplacement: String?,
+        val v1Replacement: String?,
+        val v2Replacement: String?,
+        val v3Replacement: String?,
+    )
+
+    private val compiledOsRules: List<CompiledOsRule> by lazy {
+        osRules.mapNotNull { rule ->
+            try {
+                CompiledOsRule(
+                    regex = Regex(rule.pattern),
+                    osReplacement = rule.osReplacement,
+                    v1Replacement = rule.v1Replacement,
+                    v2Replacement = rule.v2Replacement,
+                    v3Replacement = rule.v3Replacement,
+                )
+            } catch (_: Throwable) {
+                // A pattern that somehow fails to compile on this target is
+                // skipped rather than crashing every future parse() call.
+                null
+            }
+        }
+    }
+
+    private fun detectOs(userAgent: String): Component? {
+        for (rule in compiledOsRules) {
+            val match = try {
+                rule.regex.find(userAgent)
+            } catch (_: Throwable) {
+                null
+            } ?: continue
+
+            val name = rule.osReplacement?.let { applyGroupReplacement(it, match) }
+                ?: groupValueOrNull(match, 1)
+                ?: continue
+
+            val v1 = rule.v1Replacement?.let { applyGroupReplacement(it, match) } ?: groupValueOrNull(match, 2)
+            val v2 = rule.v2Replacement?.let { applyGroupReplacement(it, match) } ?: groupValueOrNull(match, 3)
+            val v3 = rule.v3Replacement?.let { applyGroupReplacement(it, match) } ?: groupValueOrNull(match, 4)
+            val version = listOfNotNull(v1, v2, v3).takeIf { it.isNotEmpty() }?.joinToString(".")
+
+            return Component(name = name, version = version)
+        }
+        return null
     }
 
     // -------------------------------------------------------------------
