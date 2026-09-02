@@ -56,6 +56,6 @@ development_status:
 
   epic-3: in-progress
   3-1-publish-the-library-to-maven-central: review
-  3-2-publish-the-js-package-to-npm: backlog
+  3-2-publish-the-js-package-to-npm: review
   3-3-verify-fresh-project-consumption-of-the-published-library: backlog
   epic-3-retrospective: optional

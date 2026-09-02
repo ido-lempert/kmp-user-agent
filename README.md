@@ -9,7 +9,11 @@ Once published, the library is available on Maven Central under:
 implementation("site.lempert:user-agent:0.1.0")
 ```
 
-(A JS/npm package is published separately -- see Story 3.2.)
+For JS/Node consumers, the same library is published to npm separately:
+
+```shell
+npm install @lempert/user-agent
+```
 
 * [/library](./library/src) is the multiplatform library itself -- `UserAgentParser`,
   `UserAgentGenerator`, and the shared data model live in

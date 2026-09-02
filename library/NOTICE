@@ -42,7 +42,7 @@ respectively).
 ## Dependency license audit (Story 3.1)
 
 Scope: every dependency that actually ships with, or is needed to build, the
-published `site.lempert:kmp-user-agent` artifact (production source sets,
+published `site.lempert:user-agent` artifact (production source sets,
 test tooling, vendored data, and the specific build plugins that produce the
 published output). An exhaustive line-by-line audit of every Gradle plugin's
 own transitive tooling dependencies is out of scope for v1 (per
@@ -61,3 +61,25 @@ spec-3-1-publish-the-library-to-maven-central.md).
 publish-relevant build tooling is MIT- or Apache-2.0-licensed. No
 copyleft (GPL/LGPL/AGPL) dependency is present anywhere in this graph.
 This confirms AD-6 and the SPEC's permissive-only license constraint.
+
+## Dependency license audit -- npm package (Story 3.2)
+
+Scope: the published `@lempert/user-agent` npm package specifically, i.e.
+what actually ends up inside the packed tarball (verified by unpacking
+`library/build/packages/lempert-user-agent-0.1.0.tgz` produced by
+`./gradlew :library:packJsPackage`).
+
+The package's generated `package.json` declares no `dependencies`,
+`devDependencies`, `peerDependencies`, or `optionalDependencies` field at
+all -- the Kotlin/JS compiler emits the Kotlin stdlib itself as a bundled
+`.mjs` file (`kotlin-kotlin-stdlib.mjs`) alongside the library's own
+compiled output, rather than as an npm registry dependency. The only
+non-code files shipped are `LICENSE`, `NOTICE`, and `README.md`, added
+explicitly via the `org.jetbrains.kotlin.npm-publish` plugin's `files`
+collection (see `library/build.gradle.kts`).
+
+**Finding:** the npm package pulls in zero additional runtime npm
+dependencies and therefore introduces no additional license exposure
+beyond what's already covered by the audit above (Kotlin stdlib,
+Apache-2.0) and the vendored uap-core data (Apache-2.0, `NOTICE` bundled
+directly in the package).

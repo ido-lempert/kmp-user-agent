@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.mavenPublish)
+    alias(libs.plugins.kotlinNpmPublish)
 }
 
 // =============================================================================
@@ -624,6 +625,64 @@ mavenPublishing {
             // unaffected and stays as-is).
             connection.set("scm:git:https://github.com/ido-lempert/kmp-user-agent.git")
             developerConnection.set("scm:git:ssh://git@github.com/ido-lempert/kmp-user-agent.git")
+        }
+    }
+}
+
+// =============================================================================
+// npm publishing (org.jetbrains.kotlin.npm-publish -- JetBrains' continuation
+// of dev.petuska.npm.publish; its classes/DSL still live under the
+// dev.petuska.npm.publish.* package even though the plugin id/coordinates are
+// now JetBrains-branded, confirmed by inspecting the resolved plugin jar).
+//
+// Publishes the js target's dist output as the scoped npm package
+// @lempert/user-agent (organization "lempert" + packageName "user-agent",
+// both human-confirmed -- see spec-3-2-publish-the-js-package-to-npm.md).
+// This module only configures the plugin; this story's verification is the
+// local packaging task only -- an actual live publish to the npmjs registry
+// is never run from an automated session (see that spec's Boundaries).
+// =============================================================================
+
+npmPublish {
+    organization.set("lempert")
+
+    registries {
+        npmjs {
+            authToken.set(providers.environmentVariable("NPM_TOKEN"))
+        }
+    }
+
+    packages {
+        named("js") {
+            packageName.set("user-agent")
+            version.set("0.1.0")
+            readme.set(rootProject.layout.projectDirectory.file("README.md"))
+
+            // NOTICE/LICENSE aren't part of the js target's own dist output, so
+            // add them explicitly -- same NOTICE/LICENSE-bundling reasoning as
+            // the JVM/Android META-INF handling above, but this plugin exposes a
+            // first-class `files` collection for exactly this (additive to
+            // whatever dist files it already wires in for this JS target).
+            files.from(layout.projectDirectory.file("NOTICE"), rootLicenseFile())
+
+            packageJson {
+                // The plugin auto-populates "main" from the js target's output
+                // module, but not "types" -- set it explicitly so TypeScript
+                // consumers pick up the .d.mts file generateTypeScriptDefinitions()
+                // already produces (confirmed missing from package.json otherwise
+                // by unpacking a locally packed tarball).
+                types.set("library.d.mts")
+                license.set("MIT")
+                homepage.set("https://github.com/ido-lempert/kmp-user-agent")
+                description.set(
+                    "A Kotlin Multiplatform library that parses and generates User-Agent strings " +
+                        "behind one common API for Android, iOS, JVM, and JS.",
+                )
+                repository {
+                    type.set("git")
+                    url.set("https://github.com/ido-lempert/kmp-user-agent.git")
+                }
+            }
         }
     }
 }
