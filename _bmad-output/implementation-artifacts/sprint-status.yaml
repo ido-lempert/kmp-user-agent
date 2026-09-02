@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-01-2026 11:00
-last_updated: 09-02-2026 10:30
+last_updated: 09-02-2026 10:45
 project: kmp-user-agent
 project_key: NOKEY
 tracking_system: file-system
@@ -46,7 +46,12 @@ development_status:
   epic-2: in-progress
   2-1-generate-a-user-agent-string-from-browser-engine-data: review
   2-2-generate-a-user-agent-string-including-os-device-data: review
-  2-3-validate-generation-across-all-four-targets: backlog
+  # Verified 2026-09-02: both ACs already satisfied by prior work, no new
+  # spec/code needed -- Story 1.4's sample apps already call generate() too,
+  # and Stories 2.1/2.2's 31 generate tests already cover browser+engine/OS/
+  # device across all four targets via the existing CI gate (all confirmed
+  # passing via a fresh `./gradlew :library:allTests` run).
+  2-3-validate-generation-across-all-four-targets: review
   epic-2-retrospective: optional
 
   epic-3: backlog
