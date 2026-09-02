@@ -588,10 +588,10 @@ mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
 
-    coordinates("site.lempert", "kmp-user-agent", "0.1.0")
+    coordinates("site.lempert", "user-agent", "0.1.0")
 
     pom {
-        name.set("kmp-user-agent")
+        name.set("user-agent")
         description.set(
             "A Kotlin Multiplatform library that parses and generates User-Agent strings " +
                 "behind one common API for Android, iOS, JVM, and JS.",

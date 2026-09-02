@@ -6,7 +6,7 @@ shared `library` module that parses and generates User-Agent strings.
 Once published, the library is available on Maven Central under:
 
 ```kotlin
-implementation("site.lempert:kmp-user-agent:0.1.0")
+implementation("site.lempert:user-agent:0.1.0")
 ```
 
 (A JS/npm package is published separately -- see Story 3.2.)

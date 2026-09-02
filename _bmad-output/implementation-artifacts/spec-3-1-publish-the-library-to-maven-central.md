@@ -64,6 +64,8 @@ context:
 
 ## Spec Change Log
 
+- 2026-09-02: Human-directed amendment — Maven artifactId changed from `kmp-user-agent` to `user-agent` (coordinates now `site.lempert:user-agent:0.1.0`), to align with the npm package name chosen for Story 3.2 (`@lempert/user-agent`). Group id and version unchanged. No real publish had occurred, so this is a pre-release correction, not a breaking change to a shipped artifact.
+
 ## Design Notes
 
 The actual live publish (`./gradlew publishAndReleaseToMavenCentral` or the plugin's equivalent task name for 0.37.0) is intentionally not run by this story — hand the exact command to the human at the end, along with a reminder that it needs their own terminal (the GPG signing key setup in this environment requires an interactive passphrase prompt this session's tooling can't satisfy).

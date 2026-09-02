@@ -53,4 +53,4 @@ v1 is done when the library is published (MIT license, permissive-only dependenc
 
 ## Open Questions
 
-- ~~Exact library artifact id (e.g. `user-agent`, `user-agent-kmp`) under the `site.lempert` namespace not yet chosen.~~ Resolved: `kmp-user-agent` (see spec-3-1-publish-the-library-to-maven-central.md).
+- ~~Exact library artifact id (e.g. `user-agent`, `user-agent-kmp`) under the `site.lempert` namespace not yet chosen.~~ Resolved: `user-agent` (see spec-3-1-publish-the-library-to-maven-central.md).
