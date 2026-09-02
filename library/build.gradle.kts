@@ -430,6 +430,12 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            // @JsExport (on the public API in commonMain) is a no-op on every
+            // target but JS; every source set compiling commonMain must opt in
+            // to the same experimental annotation it does.
+            languageSettings.optIn("kotlin.js.ExperimentalJsExport")
+        }
         commonMain {
             kotlin.srcDir(generateUserAgentRules)
             dependencies {

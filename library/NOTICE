@@ -26,3 +26,15 @@ This data is consumed only by this module's Gradle build-time code
 generation task, which compiles the `user_agent_parsers` rule table into
 generated Kotlin source under `library/build/generated/`. It is never
 loaded as a runtime resource by the published library artifact.
+
+Additionally vendored: uap-core's own test fixtures
+Vendored files: tests/test_ua.yaml, tests/test_os.yaml, tests/test_device.yaml
+Vendored from commit: 73e7340c3ed8055051607b296bf46ead7aa5f19e (same pinned
+commit as regexes.yaml above)
+
+A hand-picked subset of these fixtures was copied (as literal Kotlin data,
+not vendored as a file) into
+`library/src/commonTest/kotlin/site/lempert/useragent/UapCoreFixtureCorpusTest.kt`
+to form this library's shared cross-target test corpus (AD-5). Each fixture
+asserts only the field its source file covers (browser/os/device
+respectively).

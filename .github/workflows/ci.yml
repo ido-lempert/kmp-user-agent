@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # `build` depends on `check` (which runs `allTests`) for every module,
+      # so this both compiles and tests the library across all four MVP
+      # targets and compiles the jvmApp/androidApp sample apps.
+      - name: Build library, samples, and run tests across all four targets
+        run: ./gradlew build

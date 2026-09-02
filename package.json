@@ -4,10 +4,10 @@
   "private": true,
   "workspaces": [
     "webApp",
-    "sharedLogic/build/dist/js/developmentLibrary"
+    "library/build/dist/js/developmentLibrary"
   ],
   "scripts": {
-    "build:shared": "./gradlew :sharedLogic:jsBrowserDevelopmentLibraryDistribution",
+    "build:shared": "./gradlew :library:jsBrowserDevelopmentLibraryDistribution",
     "build": "npm run build:shared && npm run build -w webApp",
     "start": "npm run build:shared && npm run start -w webApp"
   }

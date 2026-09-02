@@ -53,3 +53,19 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-2-generate-a-user-agent-string-including-os-device-data.md`
   summary: Generating `os = Component("Android", version)` with `device = null` produces a token (e.g. `"Linux; Android 12"`) that still contains the bare word "Android", which a vendored `device_parsers` catch-all rule matches, incidentally producing `Device("Generic", "Smartphone", "Generic Smartphone")` on parse-back even though `device` was `null` in the original input.
   evidence: Mirrors the already-intentional "Mac/iPhone incidentally recover `device`" behavior this story documents, but wasn't itself documented or asserted for the Android-without-device case; confirmed via review, not yet demonstrated as harmful (the AC only requires `device` to survive round-trip when it was actually supplied), but worth an explicit test/doc note if it ever needs to change.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-4-validate-parsing-across-all-four-targets.md`
+  summary: `.github/workflows/ci.yml` runs everything in a single job with no per-target matrix, so a failure on one of the four MVP targets (jvmTest/testAndroidHostTest/jsTest/iosSimulatorArm64Test) shows up buried in one combined log rather than being individually attributed.
+  evidence: Matches this story's frozen "single job" boundary; worth splitting into a matrix once CI run time or failure-triage friction actually becomes a problem in practice.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-4-validate-parsing-across-all-four-targets.md`
+  summary: No JDK is explicitly pinned in `.github/workflows/ci.yml` (no `actions/setup-java`) — the build relies entirely on `gradle/gradle-daemon-jvm.properties`' toolchain auto-provisioning (Azul JDK 21 via the foojay resolver) to fetch a working JDK on a fresh runner.
+  evidence: Should work (this is exactly what that file is for), but hasn't been proven on an actual GitHub Actions runner yet since this session only verified locally and hasn't pushed; worth confirming on the first real CI run and adding an explicit `actions/setup-java` step if auto-provisioning ever fails there.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-4-validate-parsing-across-all-four-targets.md`
+  summary: The newly `@JsExport`ed public API (`UserAgentInfo`, `Component`, `Device`, `UserAgentParser`, `UserAgentGenerator`) has no KDoc beyond what already existed for Kotlin consumers, even though these declarations are now the literal contract JS/TypeScript consumers see directly.
+  evidence: Not required for this story's scope (a thin sample-app harness), but worth adding once the JS/npm consumption story (Epic 3) makes this a real, published, externally-consumed API surface.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-4-validate-parsing-across-all-four-targets.md`
+  summary: `jvmApp`'s `Main.kt` only exercises one hardcoded UA string and one hardcoded `UserAgentInfo` for generation, with no `args: Array<String>` support to let a caller point it at arbitrary input.
+  evidence: Consistent with "thin harness, not a real app" scope for all four sample apps in this story; worth adding if the sample apps are ever used for more than a one-glance proof-of-consumption check.

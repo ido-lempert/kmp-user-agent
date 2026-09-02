@@ -1,29 +1,24 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web.
+This is a Kotlin Multiplatform project targeting Android, iOS, JVM, and Web with a
+shared `library` module that parses and generates User-Agent strings.
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+* [/library](./library/src) is the multiplatform library itself -- `UserAgentParser`,
+  `UserAgentGenerator`, and the shared data model live in
+  [commonMain](./library/src/commonMain/kotlin), with the shared cross-target test
+  corpus in [commonTest](./library/src/commonTest/kotlin). Every production source
+  set depends only on the Kotlin stdlib.
 
-* [/sharedLogic](./sharedLogic/src) is for the code that will be shared between app targets in the project.
-  The most important subfolder is [commonMain](./sharedLogic/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
-
-* [/sharedUI](./sharedUI/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./sharedUI/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./sharedUI/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./sharedUI/src/jvmMain/kotlin)
-    folder is the appropriate location.
-
-* [/webApp](./webApp) contains a React web application. It uses the Kotlin/JS library produced
-  by the [sharedLogic](./sharedLogic) module.
+* [/androidApp](./androidApp), [/iosApp](./iosApp/iosApp), [/jvmApp](./jvmApp),
+  and [/webApp](./webApp) are thin per-target sample apps -- one per MVP target
+  (Android, iOS, JVM, Web) -- that each depend on `:library` and call
+  `UserAgentParser.parse()`/`UserAgentGenerator.generate()` to prove the library
+  works as a consumed dependency. They are harnesses, not real app experiences.
 
 ### Running the apps
 
 Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
 
 - Android app: `./gradlew :androidApp:assembleDebug`
+- JVM app: `./gradlew :jvmApp:run`
 - Web app:
   1. Install [Node.js](https://nodejs.org/en/download) (which includes `npm`)
   2. Build and run the web application:
@@ -38,9 +33,14 @@ Use the run configurations provided by the run widget in your IDE's toolbar. You
 
 Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 
-- Android tests: `./gradlew :sharedUI:testAndroidHostTest :sharedLogic:testAndroidHostTest`
-- Web tests: `./gradlew :sharedLogic:jsTest`
-- iOS tests: `./gradlew :sharedLogic:iosSimulatorArm64Test`
+- All targets at once: `./gradlew :library:allTests`
+- Android tests: `./gradlew :library:testAndroidHostTest`
+- JVM tests: `./gradlew :library:jvmTest`
+- Web tests: `./gradlew :library:jsTest`
+- iOS tests: `./gradlew :library:iosSimulatorArm64Test`
+
+CI (`.github/workflows/ci.yml`) runs `./gradlew build` on every push and pull
+request, which exercises all four targets and compiles the sample apps.
 
 ---
 

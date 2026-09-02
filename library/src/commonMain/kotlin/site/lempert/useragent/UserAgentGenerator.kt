@@ -1,5 +1,7 @@
 package site.lempert.useragent
 
+import kotlin.js.JsExport
+
 /**
  * Stateless entry point for building a User-Agent string from structured data --
  * the inverse of [UserAgentParser.parse].
@@ -15,7 +17,11 @@ package site.lempert.useragent
  * to round-trip correctly through the real compiled `UserAgentParser` logic for
  * the same four representative families used throughout parsing: Chrome,
  * Firefox, Safari, Edge.
+ *
+ * `@JsExport` makes this existing object visible to JS/TS consumers; it's a
+ * no-op on every other target and changes no generation behavior.
  */
+@JsExport
 object UserAgentGenerator {
 
     private const val BASE = "Mozilla/5.0"

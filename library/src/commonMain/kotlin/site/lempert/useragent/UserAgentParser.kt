@@ -3,13 +3,18 @@ package site.lempert.useragent
 import site.lempert.useragent.generated.browserRules
 import site.lempert.useragent.generated.deviceRules
 import site.lempert.useragent.generated.osRules
+import kotlin.js.JsExport
 
 /**
  * Stateless entry point for parsing a raw User-Agent string into structured data.
  *
  * [parse] never throws: unrecognized input (including an empty string) simply
  * results in `null` fields.
+ *
+ * `@JsExport` makes this existing object visible to JS/TS consumers; it's a
+ * no-op on every other target and changes no parsing behavior.
  */
+@JsExport
 object UserAgentParser {
 
     fun parse(userAgent: String): UserAgentInfo {
