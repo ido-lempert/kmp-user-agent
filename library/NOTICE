@@ -38,3 +38,26 @@ not vendored as a file) into
 to form this library's shared cross-target test corpus (AD-5). Each fixture
 asserts only the field its source file covers (browser/os/device
 respectively).
+
+## Dependency license audit (Story 3.1)
+
+Scope: every dependency that actually ships with, or is needed to build, the
+published `site.lempert:kmp-user-agent` artifact (production source sets,
+test tooling, vendored data, and the specific build plugins that produce the
+published output). An exhaustive line-by-line audit of every Gradle plugin's
+own transitive tooling dependencies is out of scope for v1 (per
+spec-3-1-publish-the-library-to-maven-central.md).
+
+| Dependency | Role | License | Ships in published artifact? |
+| --- | --- | --- | --- |
+| Kotlin stdlib (JetBrains) | Implicit production dependency of every Kotlin target | Apache License 2.0 | Yes (transitively, standard for any Kotlin artifact) |
+| kotlin.test (JetBrains, bundled with Kotlin) | `commonTest` only | Apache License 2.0 | No (test-only) |
+| uap-core `regexes.yaml` + test fixtures (vendored snapshot, see above) | Build-time codegen input / test data; compiled into `commonMain` rule table | Apache License 2.0 | Yes, as compiled Kotlin data (not the original YAML file) |
+| Kotlin Multiplatform Gradle plugin (JetBrains) | Build tooling | Apache License 2.0 | No (build-time only) |
+| Android Gradle Plugin / `com.android.kotlin.multiplatform.library` (Google) | Build tooling | Apache License 2.0 | No (build-time only) |
+| `com.vanniktech.maven.publish` 0.37.0 | Build tooling (publishing) | Apache License 2.0 | No (build-time only) |
+
+**Finding:** every dependency in the library's production, test, and
+publish-relevant build tooling is MIT- or Apache-2.0-licensed. No
+copyleft (GPL/LGPL/AGPL) dependency is present anywhere in this graph.
+This confirms AD-6 and the SPEC's permissive-only license constraint.

@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-01-2026 11:00
-last_updated: 09-02-2026 10:45
+last_updated: 09-02-2026 12:15
 project: kmp-user-agent
 project_key: NOKEY
 tracking_system: file-system
@@ -54,8 +54,8 @@ development_status:
   2-3-validate-generation-across-all-four-targets: review
   epic-2-retrospective: optional
 
-  epic-3: backlog
-  3-1-publish-the-library-to-maven-central: backlog
+  epic-3: in-progress
+  3-1-publish-the-library-to-maven-central: review
   3-2-publish-the-js-package-to-npm: backlog
   3-3-verify-fresh-project-consumption-of-the-published-library: backlog
   epic-3-retrospective: optional

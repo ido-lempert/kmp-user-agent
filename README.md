@@ -1,6 +1,16 @@
 This is a Kotlin Multiplatform project targeting Android, iOS, JVM, and Web with a
 shared `library` module that parses and generates User-Agent strings.
 
+## Adding the dependency
+
+Once published, the library is available on Maven Central under:
+
+```kotlin
+implementation("site.lempert:kmp-user-agent:0.1.0")
+```
+
+(A JS/npm package is published separately -- see Story 3.2.)
+
 * [/library](./library/src) is the multiplatform library itself -- `UserAgentParser`,
   `UserAgentGenerator`, and the shared data model live in
   [commonMain](./library/src/commonMain/kotlin), with the shared cross-target test

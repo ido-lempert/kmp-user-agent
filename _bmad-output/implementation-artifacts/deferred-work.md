@@ -69,3 +69,15 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-4-validate-parsing-across-all-four-targets.md`
   summary: `jvmApp`'s `Main.kt` only exercises one hardcoded UA string and one hardcoded `UserAgentInfo` for generation, with no `args: Array<String>` support to let a caller point it at arbitrary input.
   evidence: Consistent with "thin harness, not a real app" scope for all four sample apps in this story; worth adding if the sample apps are ever used for more than a one-glance proof-of-consumption check.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-1-publish-the-library-to-maven-central.md`
+  summary: The release version `"0.1.0"` is a hardcoded literal in `mavenPublishing { coordinates(...) }`, with no versioning strategy addressed for subsequent releases (e.g. `-SNAPSHOT` for non-tagged CI builds, or a single source of truth like a git tag or `gradle.properties` value feeding both the coordinate and a CHANGELOG).
+  evidence: Fine for this story's single, human-confirmed v1 release; Maven Central rejects re-publishing an already-released version, so this needs a real strategy before a second release (0.2.0 etc.) is ever cut — worth addressing in whichever future story handles the next release.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-1-publish-the-library-to-maven-central.md`
+  summary: There is no automated regression check (e.g. a Gradle task that unzips the built jar/aar and asserts `META-INF/LICENSE`/`META-INF/NOTICE` are present) protecting the NOTICE/LICENSE-bundling wiring — this session verified it by manually unzipping the built artifacts, which offers no lasting protection against a future refactor quietly breaking it.
+  evidence: The bundling mechanism itself needed a real fix during this story (the `packaging.resources.excludes` DSL alone wasn't sufficient for `com.android.kotlin.multiplatform.library`'s AAR output, confirmed by direct inspection) — precisely the kind of silent regression an automated check would catch early. Worth adding as a lightweight test once the publish pipeline stabilizes.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-1-publish-the-library-to-maven-central.md`
+  summary: No CI workflow exists for actually running a real Maven Central publish (tag-triggered or otherwise) — this story only wires up local configuration and verification (`publishToMavenLocal`); the live release step remains an entirely manual, untracked action run from the maintainer's own terminal.
+  evidence: Intentional and out of scope for this story (see its frozen Boundaries — no live publish from an automated session, and the GPG signing key setup here requires an interactive passphrase prompt this session's tooling can't satisfy anyway); worth revisiting once a stable release cadence justifies automating it.

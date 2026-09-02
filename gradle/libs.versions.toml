@@ -14,6 +14,7 @@ junit = "4.13.2"
 kotlin = "2.4.10"
 kotlin-wrappers = "2026.8.4"
 material3 = "1.11.0-alpha07"
+mavenPublish = "0.37.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -43,3 +44,4 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 application = { id = "application" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

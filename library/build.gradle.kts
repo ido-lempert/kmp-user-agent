@@ -5,6 +5,7 @@ import java.io.File
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.mavenPublish)
 }
 
 // =============================================================================
@@ -386,6 +387,74 @@ val generateUserAgentRules = tasks.register("generateUserAgentRules") {
 }
 
 // =============================================================================
+// NOTICE + LICENSE bundling: ship the root MIT LICENSE and the vendored
+// uap-core Apache-2.0 attribution (NOTICE) inside the published JVM and
+// Android artifacts under META-INF/.
+//
+// There's no single Gradle mechanism that reaches both the JVM `Jar` task and
+// the Android AAR's resource merging, so this copies the two canonical files
+// (repo-root `LICENSE`, `library/NOTICE`) into two build-generated
+// directories and registers each as an extra `resources` source directory on
+// the relevant KMP source set -- `processJvmMainResources`/`jvmJar` picks up
+// the JVM one, and `mergeAndroidMainJavaResource` (which feeds the published
+// AAR) picks up the Android one. The iOS klib/framework artifact
+// intentionally does not embed either file: embedding text files inside a
+// compiled Kotlin/Native binary isn't standard practice, so iOS consumers
+// instead get both via the published POM's SCM/license metadata pointing
+// back to this source repo (same reasoning applies to the JS target's own
+// Maven publication, distinct from the npm package Story 3.2 covers).
+// =============================================================================
+
+// Declared as a function (not a top-level `val`) on purpose: a top-level
+// `val` in a `.gradle.kts` script is a property of the script's own class,
+// and referencing it from a task's `doLast` would capture the whole
+// (unserializable) script object for the configuration cache -- same pitfall
+// documented on `UapCoreCodegen` above, same fix (keep it out of any closure
+// captured by a task action; call this to get a fresh, capture-safe value
+// inside each task's own configuration block instead).
+fun rootLicenseFile(): org.gradle.api.file.RegularFile = rootProject.layout.projectDirectory.file("LICENSE")
+
+val prepareNoticeForJvm = tasks.register("prepareNoticeForJvm") {
+    val noticeFile = layout.projectDirectory.file("NOTICE")
+    val licenseFile = rootLicenseFile()
+    val outputDirectory = layout.buildDirectory.dir("generated/notice/jvmMain")
+
+    description = "Copies the library's LICENSE/NOTICE files into META-INF/ for the published JVM jar."
+    group = "publishing"
+
+    inputs.file(noticeFile)
+    inputs.file(licenseFile)
+    outputs.dir(outputDirectory)
+
+    doLast {
+        val metaInfDir = File(outputDirectory.get().asFile, "META-INF")
+        metaInfDir.mkdirs()
+        noticeFile.asFile.copyTo(File(metaInfDir, "NOTICE"), overwrite = true)
+        licenseFile.asFile.copyTo(File(metaInfDir, "LICENSE"), overwrite = true)
+    }
+}
+
+val prepareNoticeForAndroid = tasks.register("prepareNoticeForAndroid") {
+    val noticeFile = layout.projectDirectory.file("NOTICE")
+    val licenseFile = rootLicenseFile()
+    val outputDirectory = layout.buildDirectory.dir("generated/notice/androidMain")
+
+    description = "Copies the library's LICENSE/NOTICE files into META-INF/ for the published Android AAR."
+    group = "publishing"
+
+    inputs.file(noticeFile)
+    inputs.file(licenseFile)
+    outputs.dir(outputDirectory)
+
+    doLast {
+        val metaInfDir = File(outputDirectory.get().asFile, "META-INF")
+        metaInfDir.mkdirs()
+        noticeFile.asFile.copyTo(File(metaInfDir, "NOTICE"), overwrite = true)
+        licenseFile.asFile.copyTo(File(metaInfDir, "LICENSE"), overwrite = true)
+    }
+}
+
+// =============================================================================
 // KMP module configuration
 // =============================================================================
 
@@ -427,6 +496,17 @@ kotlin {
         }
 
         withHostTest {}
+
+        // AGP's default packaging excludes `META-INF/NOTICE` (and `NOTICE.txt`)
+        // from merged Java resources, on the assumption it's noise from a
+        // dependency. Here it's this library's own required Apache-2.0
+        // attribution (AD-6) for the vendored uap-core data, so it must be
+        // un-excluded to actually reach the published AAR.
+        packaging {
+            resources {
+                excludes -= "/META-INF/NOTICE"
+            }
+        }
     }
 
     sourceSets {
@@ -445,9 +525,105 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        jvmMain {
+            resources.srcDir(prepareNoticeForJvm)
+        }
+        androidMain {
+            resources.srcDir(prepareNoticeForAndroid)
+        }
     }
 }
 
 tasks.withType<KotlinCompilationTask<*>>().configureEach {
     dependsOn(generateUserAgentRules)
+}
+
+// Safety net alongside the `resources.srcDir(...)` wiring above (mirrors the
+// belt-and-suspenders pattern used for `generateUserAgentRules` above). These
+// task names are created lazily by the Kotlin/Android Gradle plugins (in
+// some cases only once the Android variant is fully configured), so this
+// uses `tasks.configureEach` -- which matches by name as each task is
+// registered, whenever that happens -- rather than `tasks.named`, which
+// requires the task to already be registered at the point it's called.
+tasks.configureEach {
+    if (name == "processJvmMainResources") {
+        dependsOn(prepareNoticeForJvm)
+    }
+    if (name == "mergeAndroidMainJavaResource") {
+        dependsOn(prepareNoticeForAndroid)
+    }
+}
+
+// Verified empirically: `NOTICE` reaches the intermediate merged-resources
+// jar via the wiring above, but the `packaging.resources.excludes -=` in the
+// `android { }` block is *not* sufficient on its own -- unzipping the actual
+// produced `library/build/outputs/aar/library.aar` showed `NOTICE` missing.
+// `com.android.kotlin.multiplatform.library`'s final AAR-bundling step
+// doesn't fully respect that DSL the way the traditional `com.android.library`
+// plugin does. `bundleAndroidMainAar` is itself a `Zip` task, so add `NOTICE`
+// directly into its output as a second, independent path to the same
+// end result -- confirmed fixed by re-unzipping the AAR after this was added.
+tasks.withType<Zip>().configureEach {
+    if (name == "bundleAndroidMainAar") {
+        from(files(layout.projectDirectory.file("NOTICE"), rootLicenseFile())) {
+            into("META-INF")
+        }
+    }
+}
+
+// =============================================================================
+// Maven Central publishing (com.vanniktech.maven.publish)
+//
+// Central Portal host, GPG signing of all publications (signAllPublications()
+// reads signingInMemoryKey/signingInMemoryKeyPassword/signingInMemoryKeyId
+// from Gradle properties/env -- ORG_GRADLE_PROJECT_* -- automatically; no
+// credential is hardcoded here). This module only configures the plugin;
+// this story's verification is `publishToMavenLocal` only -- see the
+// Boundaries in spec-3-1-publish-the-library-to-maven-central.md for why an
+// actual `publishToMavenCentral`/`publishAndReleaseToMavenCentral` is never
+// run from an automated session.
+// =============================================================================
+
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+
+    coordinates("site.lempert", "kmp-user-agent", "0.1.0")
+
+    pom {
+        name.set("kmp-user-agent")
+        description.set(
+            "A Kotlin Multiplatform library that parses and generates User-Agent strings " +
+                "behind one common API for Android, iOS, JVM, and JS.",
+        )
+        url.set("https://github.com/ido-lempert/kmp-user-agent")
+
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://spdx.org/licenses/MIT.html")
+                // Maven POM's <distribution> means "how to obtain it" (repo|manual),
+                // not a URL -- "repo" is correct here since it's fetched from the
+                // Maven repository itself, same as the artifact.
+                distribution.set("repo")
+            }
+        }
+
+        developers {
+            developer {
+                id.set("ido-lempert")
+                name.set("Ido Lempert")
+                email.set("il.mrbit@gmail.com")
+            }
+        }
+
+        scm {
+            url.set("https://github.com/ido-lempert/kmp-user-agent")
+            // GitHub disabled unauthenticated git:// access in 2022; https:// is the
+            // correct anonymous-read protocol now (developerConnection's ssh:// is
+            // unaffected and stays as-is).
+            connection.set("scm:git:https://github.com/ido-lempert/kmp-user-agent.git")
+            developerConnection.set("scm:git:ssh://git@github.com/ido-lempert/kmp-user-agent.git")
+        }
+    }
 }
