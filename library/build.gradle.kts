@@ -649,6 +649,16 @@ npmPublish {
     registries {
         npmjs {
             authToken.set(providers.environmentVariable("NPM_TOKEN"))
+            // npmjs.org now requires a one-time password for publishing on
+            // accounts where the configured token isn't exempt from 2FA (e.g.
+            // "Automation" tokens are increasingly restricted to staging-only
+            // publishes under npm's 2026 policy changes). Pass a fresh code
+            // from your authenticator at invocation time -- it's only valid
+            // for a short window, so it can't be a static env var:
+            //   ./gradlew :library:publishJsPackageToNpmjsRegistry -PnpmOtp=123456
+            // Omitting -PnpmOtp leaves this unset, which is fine for every
+            // other task (packJsPackage, build, etc.) that never reads it.
+            otp.set(providers.gradleProperty("npmOtp"))
         }
     }
 
