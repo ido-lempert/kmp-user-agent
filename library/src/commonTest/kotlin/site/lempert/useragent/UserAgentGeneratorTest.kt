@@ -570,4 +570,117 @@ class UserAgentGeneratorTest {
 
         assertEquals(generate(info), ua)
     }
+
+    // -----------------------------------------------------------------
+    // Story 4.3: bot and AI-agent detection packs (I/O & Edge-Case Matrix)
+    // -----------------------------------------------------------------
+
+    @Test
+    fun botPackGenerateRoundTrips() {
+        val info = UserAgentInfo(bot = Component("Googlebot", "2.1"))
+
+        val ua = UserAgentGenerator(UserAgentBotTypes)(info)
+        val parsed = UserAgentParser(UserAgentBotTypes)(ua)
+
+        assertEquals(info.bot, parsed.bot)
+    }
+
+    @Test
+    fun botPackWithNoDocumentedVersionGenerateRoundTrips() {
+        val info = UserAgentInfo(bot = Component("StatusCake", null))
+
+        val ua = UserAgentGenerator(UserAgentBotTypes)(info)
+        val parsed = UserAgentParser(UserAgentBotTypes)(ua)
+
+        assertEquals(info.bot, parsed.bot)
+    }
+
+    @Test
+    fun yandexBotWithNoVersionGenerateRoundTrips() {
+        // YandexBot is the only BotVersionMode.OPTIONAL rule -- its version
+        // token is present when documented but the bare "YandexBot" token
+        // (no version) must also round-trip cleanly.
+        val info = UserAgentInfo(bot = Component("YandexBot", null))
+
+        val ua = UserAgentGenerator(UserAgentBotTypes)(info)
+        val parsed = UserAgentParser(UserAgentBotTypes)(ua)
+
+        assertEquals(info.bot, parsed.bot)
+    }
+
+    @Test
+    fun generateBotSegmentReturnsNullWhenARequiredVersionIsMissing() {
+        // Googlebot is a BotVersionMode.REQUIRED rule: a null version must not
+        // emit a malformed token (e.g. a bare "Googlebot/" with no version).
+        val info = UserAgentInfo(bot = Component("Googlebot", null))
+
+        assertEquals("Mozilla/5.0", UserAgentGenerator(UserAgentBotTypes)(info))
+    }
+
+    @Test
+    fun userAgentAllTypesRoundTripsABotIdentity() {
+        val info = UserAgentInfo(bot = Component("Googlebot", "2.1"))
+
+        val ua = generate(info)
+        val parsed = parse(ua)
+
+        assertEquals(info.bot, parsed.bot)
+    }
+
+    @Test
+    fun aiAgentPackGenerateRoundTrips() {
+        val info = UserAgentInfo(aiAgent = Component("GPTBot", "1.2"))
+
+        val ua = UserAgentGenerator(UserAgentAIAgentTypes)(info)
+        val parsed = UserAgentParser(UserAgentAIAgentTypes)(ua)
+
+        assertEquals(info.aiAgent, parsed.aiAgent)
+    }
+
+    @Test
+    fun aiAgentPackWithNoDocumentedVersionGenerateRoundTrips() {
+        val info = UserAgentInfo(aiAgent = Component("ClaudeBot", null))
+
+        val ua = UserAgentGenerator(UserAgentAIAgentTypes)(info)
+        val parsed = UserAgentParser(UserAgentAIAgentTypes)(ua)
+
+        assertEquals(info.aiAgent, parsed.aiAgent)
+    }
+
+    @Test
+    fun generateAiAgentSegmentReturnsNullWhenARequiredVersionIsMissing() {
+        // GPTBot is a AiAgentVersionMode.REQUIRED rule: a null version must
+        // not emit a malformed token (e.g. a bare "GPTBot/" with no version).
+        val info = UserAgentInfo(aiAgent = Component("GPTBot", null))
+
+        assertEquals("Mozilla/5.0", UserAgentGenerator(UserAgentAIAgentTypes)(info))
+    }
+
+    @Test
+    fun userAgentAllTypesRoundTripsAnAiAgentIdentity() {
+        val info = UserAgentInfo(aiAgent = Component("GPTBot", "1.2"))
+
+        val ua = generate(info)
+        val parsed = parse(ua)
+
+        assertEquals(info.aiAgent, parsed.aiAgent)
+    }
+
+    @Test
+    fun unrecognizedBotNameContributesNothingToGenerate() {
+        val info = UserAgentInfo(bot = Component("NotARealBot", "1.0"))
+
+        val ua = UserAgentGenerator(UserAgentBotTypes)(info)
+
+        assertEquals("Mozilla/5.0", ua)
+    }
+
+    @Test
+    fun unrecognizedAiAgentNameContributesNothingToGenerate() {
+        val info = UserAgentInfo(aiAgent = Component("NotARealAiAgent", "1.0"))
+
+        val ua = UserAgentGenerator(UserAgentAIAgentTypes)(info)
+
+        assertEquals("Mozilla/5.0", ua)
+    }
 }

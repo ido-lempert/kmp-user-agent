@@ -65,4 +65,6 @@ development_status:
   epic-4: in-progress
   4-1-redesign-parse-generate-as-composable-type-packs-validated-via-npm-node: review
   4-2-validate-type-pack-api-parity-across-all-four-targets-and-republish: review
+  # Added 2026-09-04: picks up the bot/AI-agent follow-up deferred from Story 4.1.
+  4-3-add-bot-and-ai-agent-detection-packs: review
   epic-4-retrospective: optional

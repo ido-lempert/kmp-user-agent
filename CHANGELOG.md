@@ -6,6 +6,31 @@ This project is pre-1.0: per semantic versioning's pre-1.0 convention, a minor
 version bump (e.g. 0.1.0 -> 0.2.0) signals a breaking change, since there is no
 major version above 0 left to bump for that purpose.
 
+## 0.3.0 - 2026-09-04
+
+### Added: bot and AI-agent detection packs
+
+Two new built-in type packs populate the `bot`/`aiAgent` fields on `UserAgentInfo`
+that shipped, always `null`, in 0.2.0:
+
+* `UserAgentBotTypes` -- Googlebot, Bingbot, DuckDuckBot, YandexBot, Baiduspider,
+  Bytespider, UptimeRobot, Pingdom, StatusCake, facebookexternalhit, Slackbot,
+  PostmanRuntime
+* `UserAgentAIAgentTypes` -- GPTBot, ChatGPT-User, OAI-SearchBot, PerplexityBot,
+  Perplexity-User, ClaudeBot, Claude-User, Claude-SearchBot, CCBot
+
+Both are small, explicitly non-exhaustive, hand-authored tables sourced only from
+each bot/crawler operator's own public documentation (Google, Microsoft,
+DuckDuckGo, Baidu, ByteDance, UptimeRobot, Pingdom, StatusCake, Meta, Slack,
+Postman, OpenAI, Perplexity, Anthropic, Common Crawl) -- never copied from a
+third-party commercial bot-detection dataset. `UserAgentAllTypes` now includes
+both, so parsing a bot/AI-agent User-Agent string with it populates `bot`/
+`aiAgent` alongside `browser`/`engine`/`os`/`device`.
+
+This is purely additive -- no existing pack, field, or call site changes
+behavior -- so it's a minor bump rather than the pre-1.0 breaking-change
+convention described above.
+
 ## 0.2.0 - 2026-09-04
 
 ### Breaking change: pack-based factory API replaces the singleton API

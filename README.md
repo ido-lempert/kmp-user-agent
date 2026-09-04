@@ -42,7 +42,22 @@ ones you don't reference:
 * `UserAgentEngineTypes` -- populates `UserAgentInfo.engine`
 * `UserAgentOsTypes` -- populates `UserAgentInfo.os`
 * `UserAgentDeviceTypes` -- populates `UserAgentInfo.device`
+* `UserAgentBotTypes` -- populates `UserAgentInfo.bot`: a small, non-exhaustive table of
+  well-known bots/crawlers (Googlebot, Bingbot, DuckDuckBot, YandexBot, Baiduspider,
+  Bytespider, UptimeRobot, Pingdom, StatusCake, facebookexternalhit, Slackbot,
+  PostmanRuntime)
+* `UserAgentAIAgentTypes` -- populates `UserAgentInfo.aiAgent`: a small, non-exhaustive
+  table of well-known AI/LLM crawlers and agents (GPTBot, ChatGPT-User, OAI-SearchBot,
+  PerplexityBot, Perplexity-User, ClaudeBot, Claude-User, Claude-SearchBot, CCBot)
 * `UserAgentAllTypes` -- convenience bundle of all of the above
+
+Every `UserAgentBotTypes`/`UserAgentAIAgentTypes` entry is hand-transcribed directly
+from that bot/crawler operator's own public documentation (Google, Microsoft,
+DuckDuckGo, Baidu, ByteDance, UptimeRobot, Pingdom, StatusCake, Meta, Slack, Postman,
+OpenAI, Perplexity, Anthropic, Common Crawl) -- never copied from a third-party
+commercial bot-detection dataset. Both tables are intentionally small starter lists,
+not exhaustive; add your own entries via a custom `UserAgentTypePack` (see below) if
+you need to detect something not covered here.
 
 **Passing no packs returns an always-empty result** -- every `UserAgentInfo` field
 `null` on parse, or just the bare `"Mozilla/5.0"` base string on generate. There is
@@ -97,9 +112,9 @@ A pack that throws during `detect`/`applyToGenerate` degrades gracefully -- it
 just contributes nothing for that call, and never crashes a composed
 `UserAgentParser`/`UserAgentGenerator` call.
 
-`UserAgentInfo` also has `bot`/`aiAgent` fields reserved for a future release's
-bot/AI-agent detection packs -- both are always `null` today, since no built-in
-pack populates them yet.
+`UserAgentInfo`'s `bot`/`aiAgent` fields are populated by `UserAgentBotTypes`/
+`UserAgentAIAgentTypes` (or `UserAgentAllTypes`) above; they stay `null` when
+those packs aren't passed, or when nothing in the passed packs' tables matches.
 
 ### Migrating from 0.1.0
 

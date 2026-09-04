@@ -452,4 +452,102 @@ class UserAgentParserTest {
 
         assertEquals(Component("Chrome", "128.0"), info.browser)
     }
+
+    // -----------------------------------------------------------------
+    // Story 4.3: bot and AI-agent detection packs (I/O & Edge-Case Matrix)
+    // -----------------------------------------------------------------
+
+    private val parseBots = UserAgentParser(UserAgentBotTypes)
+    private val parseAiAgents = UserAgentParser(UserAgentAIAgentTypes)
+
+    @Test
+    fun everyDocumentedBotTokenParsesToItsComponent() {
+        val cases = listOf(
+            "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" to
+                Component("Googlebot", "2.1"),
+            "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)" to
+                Component("Bingbot", "2.0"),
+            "DuckDuckBot/1.1; (+http://duckduckgo.com/duckduckbot.html)" to
+                Component("DuckDuckBot", "1.1"),
+            "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)" to
+                Component("YandexBot", "3.0"),
+            "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)" to
+                Component("Baiduspider", "2.0"),
+            "Mozilla/5.0 (compatible; Bytespider; spider-feedback@bytedance.com)" to
+                Component("Bytespider", null),
+            "Mozilla/5.0+(compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)" to
+                Component("UptimeRobot", "2.0"),
+            "Mozilla/5.0 (compatible; Pingdom.com_bot_version_1.4_(http://www.pingdom.com/))" to
+                Component("Pingdom", "1.4"),
+            "Mozilla/5.0 (compatible; StatusCake)" to
+                Component("StatusCake", null),
+            "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)" to
+                Component("facebookexternalhit", "1.1"),
+            "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)" to
+                Component("Slackbot", null),
+            "PostmanRuntime/7.32.3" to
+                Component("PostmanRuntime", "7.32.3"),
+        )
+
+        for ((ua, expected) in cases) {
+            assertEquals(expected, parseBots(ua).bot, "for UA: $ua")
+        }
+    }
+
+    @Test
+    fun yandexBotWithoutADocumentedVersionParsesWithNullVersion() {
+        val info = parseBots("Mozilla/5.0 (compatible; YandexBot; +http://yandex.com/bots)")
+
+        assertEquals(Component("YandexBot", null), info.bot)
+    }
+
+    @Test
+    fun everyDocumentedAiAgentTokenParsesToItsComponent() {
+        val cases = listOf(
+            "Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)" to
+                Component("GPTBot", "1.2"),
+            "Mozilla/5.0 (compatible; ChatGPT-User/1.0; +https://openai.com/bot)" to
+                Component("ChatGPT-User", "1.0"),
+            "Mozilla/5.0 (compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot)" to
+                Component("OAI-SearchBot", "1.0"),
+            "Mozilla/5.0 (compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)" to
+                Component("PerplexityBot", "1.0"),
+            "Mozilla/5.0 (compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)" to
+                Component("Perplexity-User", "1.0"),
+            "Mozilla/5.0 (compatible; ClaudeBot; +claudebot@anthropic.com)" to
+                Component("ClaudeBot", null),
+            "Mozilla/5.0 (compatible; Claude-User; +claude-user@anthropic.com)" to
+                Component("Claude-User", null),
+            "Mozilla/5.0 (compatible; Claude-SearchBot; +claude-searchbot@anthropic.com)" to
+                Component("Claude-SearchBot", null),
+            "CCBot/2.0 (https://commoncrawl.org/faq/)" to
+                Component("CCBot", "2.0"),
+        )
+
+        for ((ua, expected) in cases) {
+            assertEquals(expected, parseAiAgents(ua).aiAgent, "for UA: $ua")
+        }
+    }
+
+    @Test
+    fun aBrowserUaParsedWithBotAndAiAgentPacksLeavesBothFieldsNull() {
+        assertNull(parseBots(chromeDesktopUa).bot)
+        assertNull(parseAiAgents(chromeDesktopUa).aiAgent)
+    }
+
+    @Test
+    fun userAgentAllTypesPopulatesBotAndAiAgentAlongsideOtherFields() {
+        val botInfo = parse("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)")
+        assertEquals(Component("Googlebot", "2.1"), botInfo.bot)
+        assertNull(botInfo.aiAgent)
+
+        val aiAgentInfo = parse("Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)")
+        assertEquals(Component("GPTBot", "1.2"), aiAgentInfo.aiAgent)
+        assertNull(aiAgentInfo.bot)
+
+        val chromeInfo = parse(chromeDesktopUa)
+        assertEquals(Component("Chrome", "128.0"), chromeInfo.browser)
+        assertNull(chromeInfo.bot)
+        assertNull(chromeInfo.aiAgent)
+    }
 }

@@ -21,9 +21,10 @@ import kotlin.js.JsExport
  * empty-packs case above), it falls back to the bare [userAgentBase] string.
  * [UserAgentAllTypes]'s own `applyToGenerate` ([generateFullUserAgentString])
  * reproduces this same fallback chain internally (browser segment, then
- * engine segment, then OS segment, then bare base), so passing just
- * [UserAgentAllTypes] behaves identically to composing the four narrower
- * built-in packs.
+ * engine segment, then OS segment, then bot segment, then AI-agent segment,
+ * then bare base), so passing just [UserAgentAllTypes] behaves identically
+ * to composing the six narrower built-in packs (browser, engine, OS,
+ * device, bot, AI agent).
  *
  * The returned function never throws: a `null` or unrecognized
  * `browser`/`engine`/`os`/`device` on the input [UserAgentInfo], or an
@@ -205,13 +206,27 @@ internal fun generateOsSegment(info: UserAgentInfo): String? {
 }
 
 /**
- * [UserAgentAllTypes]'s generate-direction contribution, and the exact
- * behavior of this library's pre-pack `UserAgentGenerator.generate`: try the
+ * [UserAgentAllTypes]'s generate-direction contribution: try the
  * recognized-browser template first, then the engine-only fallback, then a
- * bare-base-plus-OS-token fallback, then finally the unadorned base string.
+ * bare-base-plus-OS-token fallback, then a recognized-bot token
+ * ([generateBotSegment]), then a recognized-AI-agent token
+ * ([generateAiAgentSegment]), then finally the unadorned base string.
+ *
+ * Browser/engine/OS are tried first because they're this library's original
+ * (pre-pack) generate behavior and a real UA normally carries at most one of
+ * "recognized browser" or "recognized bot/AI-agent identity" -- a bot token
+ * such as `Googlebot/2.1` never also carries a `Chrome/...`-style browser
+ * token in the same string. Bot is tried before AI agent only because that's
+ * the built-in packs' declared order elsewhere ([UserAgentAllTypes]'s
+ * `detect`); either could reasonably come first since both fields are
+ * populated independently and a real `UserAgentInfo` should never have both
+ * `bot` and `aiAgent` set from a single real UA.
  */
 internal fun generateFullUserAgentString(info: UserAgentInfo): String {
     generateBrowserSegment(info)?.let { return it }
     generateEngineSegment(info)?.let { return it }
-    return generateOsSegment(info) ?: userAgentBase
+    generateOsSegment(info)?.let { return it }
+    generateBotSegment(info)?.let { return it }
+    generateAiAgentSegment(info)?.let { return it }
+    return userAgentBase
 }

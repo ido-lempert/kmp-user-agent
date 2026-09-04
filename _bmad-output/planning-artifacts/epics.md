@@ -354,3 +354,29 @@ So that all consumers get the redesigned API through the same trusted registries
 **Given** the breaking change from Epics 1–2's API
 **When** the release is published
 **Then** the README/CHANGELOG documents the new type-pack API and a migration note from the old `parse()`/`generate()` shape
+
+### Story 4.3: Add Bot and AI-Agent Detection Packs
+
+*(Added 2026-09-04 — picks up the bot/AI-agent follow-up deferred from Story 4.1's spec; see `deferred-work.md`.)*
+
+As a KMP developer using this library,
+I want `UserAgentBotTypes` and `UserAgentAIAgentTypes` packs that populate `UserAgentInfo.bot`/`.aiAgent`,
+So that I can detect well-known bots and AI/LLM crawlers the same composable way I detect browsers/OS/devices, without forking the library.
+
+**Acceptance Criteria:**
+
+**Given** the `UserAgentTypePack` contract and `UserAgentInfo.bot`/`.aiAgent` fields already shipped in Story 4.1
+**When** `UserAgentBotTypes` and `UserAgentAIAgentTypes` are implemented following that same contract
+**Then** each is individually importable/composable exactly like the existing built-in packs (`UserAgentParser(UserAgentBotTypes)`, combinable with others), and `UserAgentAllTypes` includes both
+
+**Given** a small, explicitly non-exhaustive, hand-authored rule set for each pack — sourced only from each bot/crawler operator's own public documentation (e.g. Google's, Microsoft's, OpenAI's, Anthropic's, Perplexity's own crawler docs), never copied from any third-party commercial bot-detection dataset (license-compatibility constraint, AD-1/AD-6/NFR1)
+**When** a UA string matching one of those documented bots/crawlers is parsed with the corresponding pack included
+**Then** the matching field (`bot` or `aiAgent`) is populated as `Component(name, version)`, correct on all four MVP targets
+
+**Given** a UA string matching no known bot/AI-agent pattern
+**When** parsed with `UserAgentBotTypes`/`UserAgentAIAgentTypes` included
+**Then** `bot`/`aiAgent` stay `null` rather than a sentinel value, and no exception is thrown
+
+**Given** the shared `commonTest` corpus (AD-5)
+**When** extended with bot/AI-agent detection cases
+**Then** it runs and passes identically on all four MVP targets as part of the existing CI gate
