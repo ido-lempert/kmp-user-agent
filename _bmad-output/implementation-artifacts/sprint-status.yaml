@@ -64,5 +64,5 @@ development_status:
   # composable type-pack API supersedes Epics 1-2's fixed-shape parse()/generate().
   epic-4: in-progress
   4-1-redesign-parse-generate-as-composable-type-packs-validated-via-npm-node: review
-  4-2-validate-type-pack-api-parity-across-all-four-targets-and-republish: backlog
+  4-2-validate-type-pack-api-parity-across-all-four-targets-and-republish: review
   epic-4-retrospective: optional
