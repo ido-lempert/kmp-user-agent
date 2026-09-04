@@ -9,9 +9,13 @@ import kotlin.js.JsExport
  * no uap-core section to vendor this from, so every entry below is
  * hand-transcribed from that bot/crawler operator's own public
  * documentation (Google, Microsoft, DuckDuckGo, Baidu, ByteDance,
- * UptimeRobot, Pingdom, StatusCake, Meta, Slack, Postman) -- never copied
- * from a third-party commercial bot-detection dataset. First match wins,
- * table order. Contributes [generateBotSegment] on the generate side.
+ * UptimeRobot, Pingdom, StatusCake, Meta, Slack, Postman, Ahrefs, Semrush,
+ * Yandex, Majestic, Moz, Twitter/X, LinkedIn, Discord, Huawei, Diffbot,
+ * ImageSift) -- never copied from a third-party commercial bot-detection
+ * dataset (Story 4.4 used DataDome's site only as a name checklist while
+ * planning which bots to add, never as a source for any token/regex).
+ * First match wins, table order. Contributes [generateBotSegment] on the
+ * generate side.
  *
  * Deliberately the only file that references [botRules]/[detectBot] -- see
  * [UserAgentBrowserTypes]'s doc comment for why this per-pack file
@@ -77,6 +81,42 @@ private val botRules: List<BotRule> = listOf(
         versionMode = BotVersionMode.NONE,
     ),
     BotRule("PostmanRuntime", Regex("PostmanRuntime/([0-9.]+)"), "PostmanRuntime", versionMode = BotVersionMode.REQUIRED),
+
+    // ---------------------------------------------------------------
+    // Story 4.4: broadened roster. Same sourcing discipline as above --
+    // each entry's citation is the operator's own public documentation
+    // (ahrefs.com, semrush.com, google.com, yandex.com, mj12bot.com,
+    // dotbot.com, twitter.com/linkedin.com/discord.com's own developer
+    // docs, huawei's PetalBot docs, diffbot.com, imagesift.com), never
+    // DataDome (used only as a name checklist during planning, per the
+    // spec's Intent). Appended after the existing 12 so no existing
+    // rule's match precedence changes.
+    // ---------------------------------------------------------------
+    BotRule("AhrefsBot", Regex("AhrefsBot/([0-9.]+)"), "AhrefsBot", versionMode = BotVersionMode.REQUIRED),
+    BotRule("SemrushBot", Regex("SemrushBot/([0-9A-Za-z.~-]+)"), "SemrushBot", versionMode = BotVersionMode.REQUIRED),
+    BotRule("AdsBot-Google", Regex("AdsBot-Google"), "AdsBot-Google", versionMode = BotVersionMode.NONE),
+    BotRule(
+        name = "Mediapartners-Google",
+        regex = Regex("Mediapartners-Google/([0-9.]+)"),
+        token = "Mediapartners-Google",
+        versionMode = BotVersionMode.REQUIRED,
+    ),
+    BotRule("GoogleOther", Regex("GoogleOther"), "GoogleOther", versionMode = BotVersionMode.NONE),
+    BotRule("YandexAdditionalBot", Regex("YandexAdditionalBot"), "YandexAdditionalBot", versionMode = BotVersionMode.NONE),
+    BotRule(
+        name = "MJ12bot",
+        regex = Regex("MJ12bot/v([0-9.]+)"),
+        token = "MJ12bot/v",
+        versionSeparator = "",
+        versionMode = BotVersionMode.REQUIRED,
+    ),
+    BotRule("DotBot", Regex("DotBot/([0-9.]+)"), "DotBot", versionMode = BotVersionMode.REQUIRED),
+    BotRule("Twitterbot", Regex("Twitterbot"), "Twitterbot", versionMode = BotVersionMode.NONE),
+    BotRule("LinkedInBot", Regex("LinkedInBot"), "LinkedInBot", versionMode = BotVersionMode.NONE),
+    BotRule("Discordbot", Regex("Discordbot"), "Discordbot", versionMode = BotVersionMode.NONE),
+    BotRule("PetalBot", Regex("PetalBot"), "PetalBot", versionMode = BotVersionMode.NONE),
+    BotRule("Diffbot", Regex("Diffbot"), "Diffbot", versionMode = BotVersionMode.NONE),
+    BotRule("ImagesiftBot", Regex("ImagesiftBot"), "ImagesiftBot", versionMode = BotVersionMode.NONE),
 )
 
 /** Used by both [UserAgentBotTypes] and [UserAgentAllTypes]. */

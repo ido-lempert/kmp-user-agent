@@ -67,4 +67,6 @@ development_status:
   4-2-validate-type-pack-api-parity-across-all-four-targets-and-republish: review
   # Added 2026-09-04: picks up the bot/AI-agent follow-up deferred from Story 4.1.
   4-3-add-bot-and-ai-agent-detection-packs: review
+  # Added 2026-09-04: extends Story 4.3's rosters at the human's explicit direction.
+  4-4-expand-bot-and-ai-agent-rosters: review
   epic-4-retrospective: optional

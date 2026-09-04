@@ -6,6 +6,35 @@ This project is pre-1.0: per semantic versioning's pre-1.0 convention, a minor
 version bump (e.g. 0.1.0 -> 0.2.0) signals a breaking change, since there is no
 major version above 0 left to bump for that purpose.
 
+## Unreleased (targeting 0.4.0)
+
+### Added: broadened bot and AI-agent rosters
+
+Extends the `UserAgentBotTypes`/`UserAgentAIAgentTypes` tables added in 0.3.0 with 25
+new entries (14 bot, 11 AI-agent), same `BotRule`/`AiAgentRule` shape and
+first-match-wins evaluation, appended after the existing 21 so no existing entry's
+match precedence changes:
+
+* `UserAgentBotTypes` gains: AhrefsBot, SemrushBot, AdsBot-Google,
+  Mediapartners-Google, GoogleOther, YandexAdditionalBot, MJ12bot, DotBot,
+  Twitterbot, LinkedInBot, Discordbot, PetalBot, Diffbot, ImagesiftBot
+* `UserAgentAIAgentTypes` gains: Amazonbot, Meta-ExternalAgent, Meta-ExternalFetcher,
+  MistralAI-User, DuckAssistBot, Google-CloudVertexBot, Kimi-User, Timpibot, omgili,
+  YouBot, Amzn-User
+
+Same sourcing discipline as 0.3.0: every entry is hand-transcribed from that
+operator's own public documentation, or (for a few AI-agent entries where no
+first-party page was found) from multiple independent, clearly-attributed
+corroborating sources with a known operator -- never from DataDome or any other
+third-party bot-detection dataset (DataDome's site was used only as a checklist of
+names to consider, per this story's spec). Three candidate AI-agent entries
+(`FacebookBot`, `DeepSeekBot`, `cohere-ai`/`cohere-training-data-crawler`) were
+considered and dropped because their token couldn't be confidently pinned down from
+that operator's own current documentation.
+
+Purely additive -- no existing pack, field, or call site changes behavior -- so a
+minor bump rather than the pre-1.0 breaking-change convention described above.
+
 ## 0.3.0 - 2026-09-04
 
 ### Added: bot and AI-agent detection packs

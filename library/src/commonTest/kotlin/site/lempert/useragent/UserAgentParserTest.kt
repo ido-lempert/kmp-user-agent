@@ -487,6 +487,35 @@ class UserAgentParserTest {
                 Component("Slackbot", null),
             "PostmanRuntime/7.32.3" to
                 Component("PostmanRuntime", "7.32.3"),
+            // Story 4.4: broadened bot roster.
+            "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)" to
+                Component("AhrefsBot", "7.0"),
+            "Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)" to
+                Component("SemrushBot", "7~bl"),
+            "Mozilla/5.0 (compatible; AdsBot-Google; +http://www.google.com/adsbot.html)" to
+                Component("AdsBot-Google", null),
+            "Mediapartners-Google/2.1" to
+                Component("Mediapartners-Google", "2.1"),
+            "Mozilla/5.0 (compatible; GoogleOther)" to
+                Component("GoogleOther", null),
+            "Mozilla/5.0 (compatible; YandexAdditionalBot; +http://yandex.com/bots)" to
+                Component("YandexAdditionalBot", null),
+            "Mozilla/5.0 (compatible; MJ12bot/v1.4.8; http://mj12bot.com/)" to
+                Component("MJ12bot", "1.4.8"),
+            "Mozilla/5.0 (compatible; DotBot/2.0; +https://opensiteexplorer.org/dotbot; help@moz.com)" to
+                Component("DotBot", "2.0"),
+            "Twitterbot" to
+                Component("Twitterbot", null),
+            "LinkedInBot" to
+                Component("LinkedInBot", null),
+            "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)" to
+                Component("Discordbot", null),
+            "Mozilla/5.0 (compatible; PetalBot;+https://webmaster.petalsearch.com/site/petalbot)" to
+                Component("PetalBot", null),
+            "Mozilla/5.0 (compatible; Diffbot/0.1; +http://www.diffbot.com)" to
+                Component("Diffbot", null),
+            "Mozilla/5.0 (compatible; ImagesiftBot; +https://imagesift.com/imagesiftbot)" to
+                Component("ImagesiftBot", null),
         )
 
         for ((ua, expected) in cases) {
@@ -522,6 +551,30 @@ class UserAgentParserTest {
                 Component("Claude-SearchBot", null),
             "CCBot/2.0 (https://commoncrawl.org/faq/)" to
                 Component("CCBot", "2.0"),
+            // Story 4.4: broadened AI-agent roster, "confirmed" tier.
+            "Mozilla/5.0 (compatible; Amazonbot/0.1; +https://developer.amazon.com/support/amazonbot)" to
+                Component("Amazonbot", "0.1"),
+            "meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/web-crawlers)" to
+                Component("Meta-ExternalAgent", "1.1"),
+            "meta-externalfetcher/1.1" to
+                Component("Meta-ExternalFetcher", "1.1"),
+            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; MistralAI-User/1.0; +https://docs.mistral.ai/robots)" to
+                Component("MistralAI-User", "1.0"),
+            "DuckAssistBot/1.2; (+http://duckduckgo.com/duckassistbot.html)" to
+                Component("DuckAssistBot", "1.2"),
+            // Story 4.4: broadened AI-agent roster, "corroborated" tier.
+            "Mozilla/5.0 (compatible; Google-CloudVertexBot; +https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers)" to
+                Component("Google-CloudVertexBot", null),
+            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Kimi-User/1.0; +https://www.kimi.com/policies/kimi-crawlers)" to
+                Component("Kimi-User", "1.0"),
+            "Mozilla/5.0 (compatible; Timpibot/0.9; +http://www.timpi.io)" to
+                Component("Timpibot", "0.9"),
+            "omgili/0.5 +https://omgili.com" to
+                Component("omgili", "0.5"),
+            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; YouBot/1.0; +https://docs.you.com/youbot; env:prod) Chrome/122.0.0.0 Safari/537.36" to
+                Component("YouBot", "1.0"),
+            "Mozilla/5.0 (compatible; Amzn-User/0.1; +https://developer.amazon.com/amazonbot)" to
+                Component("Amzn-User", "0.1"),
         )
 
         for ((ua, expected) in cases) {

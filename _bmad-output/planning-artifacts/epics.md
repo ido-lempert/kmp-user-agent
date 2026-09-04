@@ -380,3 +380,21 @@ So that I can detect well-known bots and AI/LLM crawlers the same composable way
 **Given** the shared `commonTest` corpus (AD-5)
 **When** extended with bot/AI-agent detection cases
 **Then** it runs and passes identically on all four MVP targets as part of the existing CI gate
+
+### Story 4.4: Expand Bot and AI-Agent Rosters
+
+*(Added 2026-09-04 — extends Story 4.3's rosters at the human's explicit direction; DataDome's site used only as a checklist of names, never as the source of the actual detection tokens, same discipline as Story 4.3.)*
+
+As a KMP developer using this library,
+I want broader coverage in `UserAgentBotTypes`/`UserAgentAIAgentTypes` beyond Story 4.3's initial 21 entries,
+So that more well-known bots and AI/LLM crawlers are detected out of the box.
+
+**Acceptance Criteria:**
+
+**Given** the same hand-authored, per-operator-cited sourcing discipline established in Story 4.3
+**When** additional bot/AI-agent entries are added to the existing tables
+**Then** each new entry is sourced from that bot/crawler operator's own documentation (or, where no first-party page exists, from multiple independent, clearly-attributed corroborating sources — never from DataDome's proprietary dataset), correct on all four MVP targets
+
+**Given** the expanded rosters
+**When** the shared `commonTest` corpus runs
+**Then** it still passes identically on all four MVP targets, with new cases covering the added entries

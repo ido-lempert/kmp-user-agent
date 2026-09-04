@@ -683,4 +683,92 @@ class UserAgentGeneratorTest {
 
         assertEquals("Mozilla/5.0", ua)
     }
+
+    // -----------------------------------------------------------------
+    // Story 4.4: broadened bot/AI-agent rosters (spot-checks, one per
+    // BotVersionMode/AiAgentVersionMode variant touched by new entries --
+    // not exhaustive over all new entries, matching Story 4.3's own test
+    // density).
+    // -----------------------------------------------------------------
+
+    @Test
+    fun newBotRequiredVersionEntryGenerateRoundTrips() {
+        val info = UserAgentInfo(bot = Component("AhrefsBot", "7.0"))
+
+        val ua = UserAgentGenerator(UserAgentBotTypes)(info)
+        val parsed = UserAgentParser(UserAgentBotTypes)(ua)
+
+        assertEquals(info.bot, parsed.bot)
+    }
+
+    @Test
+    fun newBotNoVersionEntryGenerateRoundTrips() {
+        val info = UserAgentInfo(bot = Component("AdsBot-Google", null))
+
+        val ua = UserAgentGenerator(UserAgentBotTypes)(info)
+        val parsed = UserAgentParser(UserAgentBotTypes)(ua)
+
+        assertEquals(info.bot, parsed.bot)
+    }
+
+    @Test
+    fun mj12botNonDefaultTokenAndSeparatorGenerateRoundTrips() {
+        // MJ12bot's real token has a "v" folded into `token` with an empty
+        // `versionSeparator` (like Pingdom's) rather than the default
+        // "name/version" shape -- exercise that this round-trips.
+        val info = UserAgentInfo(bot = Component("MJ12bot", "1.4.8"))
+
+        val ua = UserAgentGenerator(UserAgentBotTypes)(info)
+
+        assertEquals("Mozilla/5.0 MJ12bot/v1.4.8", ua)
+        assertEquals(info.bot, UserAgentParser(UserAgentBotTypes)(ua).bot)
+    }
+
+    @Test
+    fun newAiAgentEntryWithDifferingTokenAndNameGenerateRoundTrips() {
+        // Meta-ExternalAgent's display `name` is mixed-case but its real
+        // literal `token` is lowercase "meta-externalagent" -- exercise that
+        // `generateAiAgentSegment` renders the real token, not the name, and
+        // that it still round-trips back to the documented display name.
+        val info = UserAgentInfo(aiAgent = Component("Meta-ExternalAgent", "1.1"))
+
+        val ua = UserAgentGenerator(UserAgentAIAgentTypes)(info)
+
+        assertEquals("Mozilla/5.0 meta-externalagent/1.1", ua)
+        assertEquals(info.aiAgent, UserAgentParser(UserAgentAIAgentTypes)(ua).aiAgent)
+    }
+
+    @Test
+    fun newAiAgentNoVersionEntryGenerateRoundTrips() {
+        val info = UserAgentInfo(aiAgent = Component("Google-CloudVertexBot", null))
+
+        val ua = UserAgentGenerator(UserAgentAIAgentTypes)(info)
+        val parsed = UserAgentParser(UserAgentAIAgentTypes)(ua)
+
+        assertEquals(info.aiAgent, parsed.aiAgent)
+    }
+
+    @Test
+    fun userAgentAllTypesRoundTripsAnAddedBotIdentity() {
+        // Regression check (I/O & Edge-Case Matrix, "All-types generate"):
+        // Story 4.3's review pass fixed UserAgentAllTypes silently dropping
+        // bot/AI-agent identity on generate -- confirm that fix still holds
+        // as the tables grow.
+        val info = UserAgentInfo(bot = Component("AhrefsBot", "7.0"))
+
+        val ua = generate(info)
+        val parsed = parse(ua)
+
+        assertEquals(info.bot, parsed.bot)
+    }
+
+    @Test
+    fun userAgentAllTypesRoundTripsAnAddedAiAgentIdentity() {
+        val info = UserAgentInfo(aiAgent = Component("Meta-ExternalAgent", "1.1"))
+
+        val ua = generate(info)
+        val parsed = parse(ua)
+
+        assertEquals(info.aiAgent, parsed.aiAgent)
+    }
 }

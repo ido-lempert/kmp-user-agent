@@ -42,22 +42,26 @@ ones you don't reference:
 * `UserAgentEngineTypes` -- populates `UserAgentInfo.engine`
 * `UserAgentOsTypes` -- populates `UserAgentInfo.os`
 * `UserAgentDeviceTypes` -- populates `UserAgentInfo.device`
-* `UserAgentBotTypes` -- populates `UserAgentInfo.bot`: a small, non-exhaustive table of
-  well-known bots/crawlers (Googlebot, Bingbot, DuckDuckBot, YandexBot, Baiduspider,
-  Bytespider, UptimeRobot, Pingdom, StatusCake, facebookexternalhit, Slackbot,
-  PostmanRuntime)
-* `UserAgentAIAgentTypes` -- populates `UserAgentInfo.aiAgent`: a small, non-exhaustive
-  table of well-known AI/LLM crawlers and agents (GPTBot, ChatGPT-User, OAI-SearchBot,
-  PerplexityBot, Perplexity-User, ClaudeBot, Claude-User, Claude-SearchBot, CCBot)
+* `UserAgentBotTypes` -- populates `UserAgentInfo.bot`: 26 entries -- a mix of
+  search/SEO crawlers, monitoring tools, social/link-preview bots, API clients,
+  and scraping/extraction services -- see
+  [`UserAgentBotTypePack.kt`](./library/src/commonMain/kotlin/site/lempert/useragent/UserAgentBotTypePack.kt)
+  for the full entry list and sourcing notes
+* `UserAgentAIAgentTypes` -- populates `UserAgentInfo.aiAgent`: 20 well-known AI/LLM
+  crawlers and agents -- see
+  [`UserAgentAIAgentTypePack.kt`](./library/src/commonMain/kotlin/site/lempert/useragent/UserAgentAIAgentTypePack.kt)
+  for the full entry list and sourcing notes
 * `UserAgentAllTypes` -- convenience bundle of all of the above
 
 Every `UserAgentBotTypes`/`UserAgentAIAgentTypes` entry is hand-transcribed directly
-from that bot/crawler operator's own public documentation (Google, Microsoft,
-DuckDuckGo, Baidu, ByteDance, UptimeRobot, Pingdom, StatusCake, Meta, Slack, Postman,
-OpenAI, Perplexity, Anthropic, Common Crawl) -- never copied from a third-party
-commercial bot-detection dataset. Both tables are intentionally small starter lists,
-not exhaustive; add your own entries via a custom `UserAgentTypePack` (see below) if
-you need to detect something not covered here.
+from that bot/crawler operator's own public documentation, or -- only where no
+first-party page could be found -- from multiple independent, clearly-attributed
+corroborating sources with a known operator (see the two files linked above's KDoc
+comments for the operators sourced from) -- never copied from a third-party
+commercial bot-detection dataset. Both tables are intentionally non-exhaustive
+starter lists; add your own
+entries via a custom `UserAgentTypePack` (see below) if you need to detect something
+not covered here.
 
 **Passing no packs returns an always-empty result** -- every `UserAgentInfo` field
 `null` on parse, or just the bare `"Mozilla/5.0"` base string on generate. There is
