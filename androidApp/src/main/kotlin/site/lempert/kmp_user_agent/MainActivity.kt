@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import site.lempert.useragent.Component
+import site.lempert.useragent.UserAgentAllTypes
 import site.lempert.useragent.UserAgentGenerator
 import site.lempert.useragent.UserAgentInfo
 import site.lempert.useragent.UserAgentParser
@@ -47,9 +48,9 @@ fun App() {
                 .safeContentPadding()
                 .fillMaxSize(),
         ) {
-            val parsed = remember { UserAgentParser.parse(SAMPLE_USER_AGENT) }
+            val parsed = remember { UserAgentParser(UserAgentAllTypes)(SAMPLE_USER_AGENT) }
             val generated = remember {
-                UserAgentGenerator.generate(
+                UserAgentGenerator(UserAgentAllTypes)(
                     UserAgentInfo(
                         browser = Component("Chrome", "91.0"),
                         engine = Component("Blink", "91.0"),

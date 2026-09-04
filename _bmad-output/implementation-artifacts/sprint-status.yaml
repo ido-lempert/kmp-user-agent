@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-01-2026 11:00
-last_updated: 09-02-2026 12:15
+last_updated: 09-04-2026 (revised)
 project: kmp-user-agent
 project_key: NOKEY
 tracking_system: file-system
@@ -59,3 +59,10 @@ development_status:
   3-2-publish-the-js-package-to-npm: review
   3-3-verify-fresh-project-consumption-of-the-published-library: backlog
   epic-3-retrospective: optional
+
+  # Added 2026-09-04 via Sprint Change Proposal (sprint-change-proposal-2026-09-04.md):
+  # composable type-pack API supersedes Epics 1-2's fixed-shape parse()/generate().
+  epic-4: in-progress
+  4-1-redesign-parse-generate-as-composable-type-packs-validated-via-npm-node: review
+  4-2-validate-type-pack-api-parity-across-all-four-targets-and-republish: backlog
+  epic-4-retrospective: optional

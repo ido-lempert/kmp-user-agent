@@ -23,8 +23,8 @@ This is a vision to realize: an open-source, MIT-licensed Kotlin Multiplatform l
   - **success:** Generated strings match known-good UA formats, or round-trip through CAP-1's parser, for the supported browser/OS/device combinations.
 
 - **CAP-3** Common API
-  - **intent:** A consumer calls one common KMP API for parse and generate that behaves identically from Android, iOS, JVM, and JS.
-  - **success:** The same Kotlin call site compiles and returns correct parse/generate results on all four MVP targets.
+  - **intent:** A consumer calls one common KMP API for parse and generate, composed from pluggable type packs (built-in: browser, engine, OS, device, bot, AI-agent; user-defined: custom packs), that behaves identically from Android, iOS, JVM, and JS. A consumer who imports only the packs they need gets a smaller JS bundle.
+  - **success:** The same Kotlin call site compiles and returns correct parse/generate results on all four MVP targets; on JS, importing a single built-in pack (rather than all packs) measurably shrinks the built bundle.
 
 - **CAP-4** Publish
   - **intent:** The library is published as an MIT-licensed multiplatform artifact consumable via standard package managers.
@@ -39,6 +39,7 @@ This is a vision to realize: an open-source, MIT-licensed Kotlin Multiplatform l
 - v1 favors shipping speed and pragmatic scope over exhaustive browser/OS/device coverage; broader detection coverage is explicit post-MVP iteration work.
 - The Maven Central publishing namespace is the reverse-DNS of the owner's domain, `site.lempert` (domain `lempert.site`), verified via the Sonatype Central Portal's domain-ownership check.
 - A JS/npm package is published for JS consumers in addition to the Maven Central Kotlin/JS artifact; it must be produced as part of the standard build's dist output (the Kotlin/JS Gradle plugin's dist folder), not a separate hand-built step.
+- The public API is a pair of factory functions — one for parse, one for generate — each taking a variadic list of type packs and returning the callable parse/generate function. Built-in packs are individually importable so the JS/npm build can dead-code-eliminate packs a consumer doesn't reference. Consumers may author their own packs following the same shape to add detection categories without forking the library. (Adopted via Sprint Change Proposal 2026-09-04, superseding the earlier fixed-shape `UserAgentParser.parse()`/`UserAgentGenerator.generate()` singleton API shipped in Epics 1–3.)
 
 ## Non-goals
 

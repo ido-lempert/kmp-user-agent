@@ -5,10 +5,13 @@ import site.lempert.useragent.generated.deviceRules
 import site.lempert.useragent.generated.osRules
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class UserAgentParserTest {
+
+    private val parse = UserAgentParser(UserAgentAllTypes)
 
     @Test
     fun chromeDesktop() {
@@ -16,7 +19,7 @@ class UserAgentParserTest {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
                 "Chrome/128.0.6613.120 Safari/537.36"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         assertEquals(Component("Chrome", "128.0"), info.browser)
         assertEquals("Blink", info.engine?.name)
@@ -28,7 +31,7 @@ class UserAgentParserTest {
     fun firefoxDesktop() {
         val ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         assertEquals(Component("Firefox", "128.0"), info.browser)
         assertEquals(Component("Gecko", "128.0"), info.engine)
@@ -42,7 +45,7 @@ class UserAgentParserTest {
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) " +
                 "Version/17.5 Safari/605.1.15"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         assertEquals(Component("Safari", "17.5"), info.browser)
         assertEquals(Component("WebKit", "605.1.15"), info.engine)
@@ -59,7 +62,7 @@ class UserAgentParserTest {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
                 "Chrome/128.0.6613.120 Safari/537.36 Edg/128.0.2739.79"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         assertEquals(Component("Edge", "128.0"), info.browser)
         assertEquals("Blink", info.engine?.name)
@@ -73,7 +76,7 @@ class UserAgentParserTest {
             "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 " +
                 "(KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         assertEquals(Component("iOS", "17.5"), info.os)
     }
@@ -84,7 +87,7 @@ class UserAgentParserTest {
             "Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) " +
                 "Chrome/91.0.4472.120 Mobile Safari/537.36"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         assertEquals(Component("Android", "12"), info.os)
     }
@@ -93,7 +96,7 @@ class UserAgentParserTest {
     fun linuxDesktopWithNoOsVersion() {
         val ua = "Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         assertEquals(Component("Linux", null), info.os)
     }
@@ -105,14 +108,14 @@ class UserAgentParserTest {
         // rule), which none of the other OS tests above happen to hit -- they
         // all match rules with either a null v1Replacement (falls back to a
         // captured group directly) or a hardcoded literal with no `$`.
-        val info = UserAgentParser.parse("Mozilla/4.0 (compatible; MSIE 6.0; Windows XP)")
+        val info = parse("Mozilla/4.0 (compatible; MSIE 6.0; Windows XP)")
 
         assertEquals(Component("Windows", "XP"), info.os)
     }
 
     @Test
     fun unrecognizedUserAgentYieldsAllNullFields() {
-        val info = UserAgentParser.parse("Definitely Not A Real Browser 000")
+        val info = parse("Definitely Not A Real Browser 000")
 
         assertNull(info.browser)
         assertNull(info.engine)
@@ -122,7 +125,7 @@ class UserAgentParserTest {
 
     @Test
     fun emptyStringYieldsAllNullFields() {
-        val info = UserAgentParser.parse("")
+        val info = parse("")
 
         assertNull(info.browser)
         assertNull(info.engine)
@@ -136,7 +139,7 @@ class UserAgentParserTest {
         // `family_replacement: 'Apple $1 App'`), which none of the browser-family
         // tests above happen to hit -- Chrome/Firefox/Safari/Edge all match rules
         // using plain capture groups or a literal (non-templated) replacement.
-        val info = UserAgentParser.parse("Watch4,2")
+        val info = parse("Watch4,2")
 
         assertEquals(Component("Apple Watch App", "4.2"), info.browser)
     }
@@ -195,7 +198,7 @@ class UserAgentParserTest {
             "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 " +
                 "(KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         // First-matching device_parsers rule for this UA is the bare `(iPhone)(?:;| Simulator;)`
         // rule (regexes.yaml ~line 5730): all three replacement fields resolve to the same
@@ -209,7 +212,7 @@ class UserAgentParserTest {
             "Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) " +
                 "Chrome/91.0.4472.120 Mobile Safari/537.36"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         // First-matching device_parsers rule for this UA is the Google Pixel rule
         // (regexes.yaml ~line 3160): `device_replacement`/`model_replacement` both '$2'
@@ -224,8 +227,8 @@ class UserAgentParserTest {
         // ('Spider'/'Spider'/'Smartphone'), so the output is identical regardless of the
         // input's casing -- only whether the pattern *matches at all* depends on
         // RegexOption.IGNORE_CASE being applied for this rule.
-        val canonicallyCasedInfo = UserAgentParser.parse("iPhone test something Bot-Mobile")
-        val nonCanonicallyCasedInfo = UserAgentParser.parse("iphone test something bot-mobile")
+        val canonicallyCasedInfo = parse("iPhone test something Bot-Mobile")
+        val nonCanonicallyCasedInfo = parse("iphone test something bot-mobile")
 
         val expected = Device(brand = "Spider", model = "Smartphone", name = "Spider")
         assertEquals(expected, canonicallyCasedInfo.device)
@@ -238,7 +241,7 @@ class UserAgentParserTest {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
                 "Chrome/128.0.6613.120 Safari/537.36"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         assertNull(info.device)
     }
@@ -256,7 +259,7 @@ class UserAgentParserTest {
             "Mozilla/5.0 (Linux; Android 5.0; SM-UNKNOWN9999) AppleWebKit/537.36 " +
                 "(KHTML, like Gecko) Chrome/40.0 Mobile Safari/537.36"
 
-        val info = UserAgentParser.parse(ua)
+        val info = parse(ua)
 
         assertEquals(Device(brand = "Generic_Android", model = "SM-UNKNOWN9999", name = null), info.device)
     }
@@ -280,13 +283,13 @@ class UserAgentParserTest {
         // BIRD-specific rule.
         assertEquals(
             Device(brand = "Generic", model = "Feature Phone", name = "Generic Feature Phone"),
-            UserAgentParser.parse("BIRD!X100").device,
+            parse("BIRD!X100").device,
         )
 
         val expected = Device(brand = "Bird", model = "X100", name = "Bird X100")
-        assertEquals(expected, UserAgentParser.parse("BIRD X100").device)
-        assertEquals(expected, UserAgentParser.parse("BIRD-X100").device)
-        assertEquals(expected, UserAgentParser.parse("BIRD.X100").device)
+        assertEquals(expected, parse("BIRD X100").device)
+        assertEquals(expected, parse("BIRD-X100").device)
+        assertEquals(expected, parse("BIRD.X100").device)
     }
 
     @Test
@@ -324,7 +327,129 @@ class UserAgentParserTest {
             " ",
         )
         for (input in inputs) {
-            UserAgentParser.parse(input)
+            parse(input)
         }
+    }
+
+    // -----------------------------------------------------------------
+    // Story 4.1: composable type-pack API (I/O & Edge-Case Matrix)
+    // -----------------------------------------------------------------
+
+    private val chromeDesktopUa =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
+            "Chrome/128.0.6613.120 Safari/537.36"
+
+    @Test
+    fun subsetPackOnlyPopulatesItsOwnField() {
+        val browserOnly = UserAgentParser(UserAgentBrowserTypes)(chromeDesktopUa)
+
+        assertEquals(Component("Chrome", "128.0"), browserOnly.browser)
+        assertNull(browserOnly.engine)
+        assertNull(browserOnly.os)
+        assertNull(browserOnly.device)
+        assertNull(browserOnly.bot)
+        assertNull(browserOnly.aiAgent)
+    }
+
+    @Test
+    fun eachBuiltInSubsetPackPopulatesOnlyItsOwnField() {
+        assertEquals(Component("Windows", "10"), UserAgentParser(UserAgentOsTypes)(chromeDesktopUa).os)
+        assertNull(UserAgentParser(UserAgentOsTypes)(chromeDesktopUa).browser)
+
+        assertEquals("Blink", UserAgentParser(UserAgentEngineTypes)(chromeDesktopUa).engine?.name)
+        assertNull(UserAgentParser(UserAgentEngineTypes)(chromeDesktopUa).browser)
+
+        val safariUa =
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) " +
+                "Version/17.5 Safari/605.1.15"
+        val deviceOnly = UserAgentParser(UserAgentDeviceTypes)(safariUa)
+        assertEquals(Device(brand = "Apple", model = "Mac", name = "Mac"), deviceOnly.device)
+        assertNull(deviceOnly.browser)
+    }
+
+    @Test
+    fun noPacksAlwaysReturnsAnEmptyResult() {
+        // Deliberately NOT the same as UserAgentAllTypes -- see UserAgentParser's
+        // doc comment and the spec's Spec Change Log: an implicit fallback to
+        // UserAgentAllTypes here defeated JS tree-shaking for every call site,
+        // not just this one, so it was dropped in favor of an always-empty
+        // result. Consumers who want everything must pass UserAgentAllTypes
+        // explicitly.
+        val info = UserAgentParser()(chromeDesktopUa)
+
+        assertNull(info.browser)
+        assertNull(info.engine)
+        assertNull(info.os)
+        assertNull(info.device)
+        assertNull(info.bot)
+        assertNull(info.aiAgent)
+        assertEquals(emptyMap(), info.custom)
+
+        val explicitAllTypes = UserAgentParser(UserAgentAllTypes)(chromeDesktopUa)
+        assertNotEquals(explicitAllTypes, info)
+    }
+
+    @Test
+    fun userAgentAllTypesMatchesTodaysParseForAKnownChromeUa() {
+        val info = UserAgentParser(UserAgentAllTypes)(chromeDesktopUa)
+
+        assertEquals(Component("Chrome", "128.0"), info.browser)
+        assertEquals("Blink", info.engine?.name)
+        assertEquals(Component("Windows", "10"), info.os)
+        assertNull(info.device)
+        assertNull(info.bot)
+        assertNull(info.aiAgent)
+    }
+
+    @Test
+    fun customPackContributesWithoutAnyLibrarySourceChange() {
+        val myCustomPack = UserAgentTypePack(
+            id = "myThing",
+            detect = { userAgent ->
+                if ("Chrome" in userAgent) {
+                    UserAgentInfo(custom = mapOf("myThing" to Component("DetectedByCustomPack", "1.0")))
+                } else {
+                    UserAgentInfo()
+                }
+            },
+        )
+
+        val info = UserAgentParser(UserAgentBrowserTypes, myCustomPack)(chromeDesktopUa)
+
+        assertEquals(Component("Chrome", "128.0"), info.browser)
+        assertEquals(Component("DetectedByCustomPack", "1.0"), info.custom["myThing"])
+        assertNull(info.os)
+    }
+
+    @Test
+    fun firstPackWinsOnFieldConflict() {
+        val alwaysChrome = UserAgentTypePack(
+            id = "always-chrome",
+            detect = { UserAgentInfo(browser = Component("AlwaysChrome", "1.0")) },
+        )
+        val alwaysFirefox = UserAgentTypePack(
+            id = "always-firefox",
+            detect = { UserAgentInfo(browser = Component("AlwaysFirefox", "2.0")) },
+        )
+
+        val info = UserAgentParser(alwaysChrome, alwaysFirefox)(chromeDesktopUa)
+
+        assertEquals(Component("AlwaysChrome", "1.0"), info.browser)
+    }
+
+    @Test
+    fun throwingCustomPackDegradesGracefullyAlongsideAWorkingPack() {
+        // Exercises the `catch (_: Throwable) { null }` around each pack's
+        // `detect` call, previously unexercised by any test: a pack that
+        // throws must not prevent a well-behaved pack composed alongside it
+        // from still contributing, and must not propagate the exception.
+        val throwingPack = UserAgentTypePack(
+            id = "throws",
+            detect = { throw IllegalStateException("boom") },
+        )
+
+        val info = UserAgentParser(throwingPack, UserAgentBrowserTypes)(chromeDesktopUa)
+
+        assertEquals(Component("Chrome", "128.0"), info.browser)
     }
 }

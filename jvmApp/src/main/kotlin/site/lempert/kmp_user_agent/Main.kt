@@ -1,6 +1,7 @@
 package site.lempert.kmp_user_agent
 
 import site.lempert.useragent.Component
+import site.lempert.useragent.UserAgentAllTypes
 import site.lempert.useragent.UserAgentGenerator
 import site.lempert.useragent.UserAgentInfo
 import site.lempert.useragent.UserAgentParser
@@ -15,7 +16,7 @@ fun main() {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
             "Chrome/128.0.6613.120 Safari/537.36"
 
-    val parsed = UserAgentParser.parse(userAgent)
+    val parsed = UserAgentParser(UserAgentAllTypes)(userAgent)
     println("Parsed \"$userAgent\" ->")
     println("  browser: ${parsed.browser}")
     println("  engine:  ${parsed.engine}")
@@ -28,7 +29,7 @@ fun main() {
         os = Component("Windows", "10"),
         device = null,
     )
-    val generated = UserAgentGenerator.generate(info)
+    val generated = UserAgentGenerator(UserAgentAllTypes)(info)
     println("Generated from $info ->")
     println("  $generated")
 }

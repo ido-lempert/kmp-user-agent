@@ -78,6 +78,10 @@ A consumer can call `UserAgentGenerator.generate(UserAgentInfo)` to build a vali
 A consumer can add the library as a real dependency from Maven Central (Kotlin/Android/iOS/JVM) or npm (JS) in a fresh project and have it work. Covers the `site.lempert` Maven Central namespace + domain verification, the `com.vanniktech.maven.publish` setup, the npm package produced from the JS dist output (AD-7) with no hand-authored `package.json`, the Apache-2.0 `NOTICE` file (AD-6), and license/dependency compliance (NFR1) verified end-to-end.
 **FRs covered:** FR4
 
+### Epic 4: Composable, Tree-Shakeable Type-Pack API
+*(Added 2026-09-04 via Sprint Change Proposal — see `sprint-change-proposal-2026-09-04.md`.)* A consumer calls `UserAgentParser(...packs)` / `UserAgentGenerator(...packs)` with any combination of built-in or custom type packs and gets back the parse/generate function, with unused packs excluded from the JS bundle. Supersedes the fixed-shape API shipped in Epics 1–2 (AD-2/AD-3 amended). The regex-matching engine, uap-core vendoring/codegen mechanics, and Maven Central + npm publish pipelines from Epics 1–3 are reused as-is.
+**FRs covered:** FR3 (amended), FR4 (republish)
+
 ## Epic 1: Parse a User-Agent String
 
 A consumer can add the library's `library` module to a project and call `UserAgentParser.parse(String)` to get structured browser/engine/OS/device data — correct on Android, iOS, JVM, and JS alike.
@@ -294,3 +298,59 @@ So that I know the library is genuinely ready for real-world use, not just succe
 **Given** a fresh JS/Node project
 **When** the published npm package is installed and parse/generate are called
 **Then** both calls succeed and return correct results, completing the SPEC's v1 success signal across all four MVP targets
+
+## Epic 4: Composable, Tree-Shakeable Type-Pack API
+
+*(Added 2026-09-04 via Sprint Change Proposal — see `sprint-change-proposal-2026-09-04.md`. Supersedes the fixed-shape `UserAgentParser.parse()`/`UserAgentGenerator.generate()` API shipped in Epics 1–2; amends AD-1/AD-2/AD-3.)*
+
+A consumer calls `UserAgentParser(...packs)` / `UserAgentGenerator(...packs)` with any combination of built-in or custom type packs and gets back the parse/generate function, with unused packs excluded from the JS bundle.
+
+### Story 4.1: Redesign Parse/Generate as Composable Type Packs, Validated via npm/Node
+
+As a KMP developer publishing this library for JS/npm consumers,
+I want the parse and generate entry points to be factory functions composed from importable type packs instead of one fixed-shape API,
+So that a consumer who only needs browser detection isn't forced to load OS/device rule tables too, and so consumers can add their own detection categories without forking the library.
+
+*(Scoped 2026-09-04 during spec planning: bot/AI-agent detection packs were split out to a deferred follow-up story — see `deferred-work.md` — since they're a net-new capability, not part of the existing browser/engine/os/device redesign, and bundling them pushed the spec over the single-goal token budget. `UserAgentInfo`'s `bot`/`aiAgent` fields and the custom-pack extension point still land in this story so that follow-up is small.)*
+
+**Acceptance Criteria:**
+
+**Given** the reworked public API
+**When** its signature is inspected
+**Then** it is exactly `UserAgentParser(vararg packs: UserAgentTypePack): (String) -> UserAgentInfo` and `UserAgentGenerator(vararg packs: UserAgentTypePack): (UserAgentInfo) -> String` (AD-3), with no packs passed returning an always-empty result — consumers wanting everything call `UserAgentParser(UserAgentAllTypes)` explicitly (refined during Story 4.1 implementation: an implicit fallback defeated tree-shaking under standard JS bundlers — see the spec's Spec Change Log)
+
+**Given** the built-in packs `UserAgentBrowserTypes`, `UserAgentEngineTypes`, `UserAgentOsTypes`, `UserAgentDeviceTypes`, and `UserAgentAllTypes`
+**When** a consumer passes any combination of them to `UserAgentParser(...)`
+**Then** `parse()` populates only the fields covered by the packs passed, leaving other `UserAgentInfo` fields `null`, correct on the JS target
+
+**Given** a consumer-authored custom pack following the documented `UserAgentTypePack` shape
+**When** it is passed to `UserAgentParser(...)` or `UserAgentGenerator(...)` alongside or instead of built-in packs
+**Then** it contributes to the parse/generate result without modifying library source
+
+**Given** the rule tables reorganized per AD-1 (one compiled table per pack)
+**When** a Kotlin/JS build imports only `UserAgentBrowserTypes` (not `UserAgentAllTypes`)
+**Then** the built JS bundle is measurably smaller than one importing `UserAgentAllTypes`, verified by installing the npm package fresh in a clean Node.js project and comparing bundle output — mirroring the manual check that surfaced this story
+
+### Story 4.2: Validate Type-Pack API Parity Across All Four Targets and Republish
+
+As a KMP developer maintaining the library,
+I want the same composable type-pack API verified correct on Android, iOS, and JVM (not just JS) and republished as a new major version,
+So that all consumers get the redesigned API through the same trusted registries, with the breaking change clearly documented.
+
+**Acceptance Criteria:**
+
+**Given** the Story 4.1 API and the shared `commonTest` corpus (AD-5)
+**When** the corpus is extended with pack-composition cases (subset packs, `UserAgentAllTypes`, a custom pack) and run via `kotlin.test`
+**Then** it executes identically and passes on all four MVP targets (Android, iOS, JVM, JS), as part of the existing CI gate
+
+**Given** the per-target sample apps from Stories 1.4/2.3
+**When** updated to call the new factory-function API
+**Then** each sample app compiles and runs correctly against the new API on its target
+
+**Given** the reworked library
+**When** a release is cut
+**Then** it is published as a new major version to Maven Central (Story 3.1's pipeline) and npm (Story 3.2's pipeline), with the old fixed-shape API not present in the new release
+
+**Given** the breaking change from Epics 1–2's API
+**When** the release is published
+**Then** the README/CHANGELOG documents the new type-pack API and a migration note from the old `parse()`/`generate()` shape

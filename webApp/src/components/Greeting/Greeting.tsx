@@ -1,7 +1,7 @@
 import './Greeting.css';
 
 import { useState } from 'react';
-import { Component, UserAgentGenerator, UserAgentInfo, UserAgentParser } from 'library';
+import { Component, UserAgentAllTypes, UserAgentGenerator, UserAgentInfo, UserAgentParser } from 'library';
 import type { AnimationEvent } from 'react';
 
 // Thin harness proving `:library` works as a consumed dependency on the web
@@ -12,8 +12,11 @@ const SAMPLE_USER_AGENT =
   'Chrome/128.0.6613.120 Safari/537.36';
 
 export function Greeting() {
-  const parsed = UserAgentParser.getInstance().parse(SAMPLE_USER_AGENT);
-  const generated = UserAgentGenerator.getInstance().generate(
+  // Top-level pack constants are exported as getter objects under Kotlin/JS's
+  // JsExport lowering for top-level properties -- .get() retrieves the actual
+  // UserAgentTypePack instance.
+  const parsed = UserAgentParser([UserAgentAllTypes.get()])(SAMPLE_USER_AGENT);
+  const generated = UserAgentGenerator([UserAgentAllTypes.get()])(
     new UserAgentInfo(new Component('Chrome', '128.0'), new Component('Blink', '128.0'), new Component('Windows', '10'), null)
   );
 

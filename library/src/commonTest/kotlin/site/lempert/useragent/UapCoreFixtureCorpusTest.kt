@@ -17,6 +17,8 @@ import kotlin.test.assertEquals
  */
 class UapCoreFixtureCorpusTest {
 
+    private val parse = UserAgentParser(UserAgentAllTypes)
+
     // Sourced from uap-core's tests/test_ua.yaml.
     private val browserFixtures: List<Pair<String, Component?>> = listOf(
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) " +
@@ -148,21 +150,21 @@ class UapCoreFixtureCorpusTest {
     @Test
     fun browserFixturesMatchUapCoreFixtures() {
         for ((userAgent, expected) in browserFixtures) {
-            assertEquals(expected, UserAgentParser.parse(userAgent).browser, "UA: $userAgent")
+            assertEquals(expected, parse(userAgent).browser, "UA: $userAgent")
         }
     }
 
     @Test
     fun osFixturesMatchUapCoreFixtures() {
         for ((userAgent, expected) in osFixtures) {
-            assertEquals(expected, UserAgentParser.parse(userAgent).os, "UA: $userAgent")
+            assertEquals(expected, parse(userAgent).os, "UA: $userAgent")
         }
     }
 
     @Test
     fun deviceFixturesMatchUapCoreFixtures() {
         for ((userAgent, expected) in deviceFixtures) {
-            assertEquals(expected, UserAgentParser.parse(userAgent).device, "UA: $userAgent")
+            assertEquals(expected, parse(userAgent).device, "UA: $userAgent")
         }
     }
 }
