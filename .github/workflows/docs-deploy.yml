@@ -103,6 +103,19 @@ jobs:
             exit 1
           fi
 
+      # None of the checks above can see GenerateDemo.vue's merge-and-retry
+      # logic (spec-5-4-live-generate-demo.md, review_loop_iteration 1): it
+      # only runs client-side inside onMounted/on click, never during the
+      # SSR build pass those steps inspect. This script exercises the
+      # extracted, framework-free resolveGenerateFields directly against
+      # the real installed @lempert/user-agent package (already resolved
+      # by `npm ci` above) and fails the job if the visitor's explicit
+      # filter selections stop winning over the randomizer -- the specific
+      # regression shape this step exists to catch.
+      - name: Verify generate-demo merge logic
+        working-directory: docs-site
+        run: node scripts/verify-generate-demo.mjs
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:

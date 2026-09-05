@@ -185,3 +185,19 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-5-3-live-parse-demo.md`
   summary: `docs-site/guide/js.md` documents the same `UserAgentParser([UserAgentAllTypes.get()])` call shape the live demo uses, but neither page links to the other -- a reader of the guide isn't pointed to the live demo as a working sanity check, and the demo doesn't link back to the guide for the full API.
   evidence: Review-surfaced (blind-hunter layer). Nice-to-have navigation improvement, low urgency.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-4-live-generate-demo.md`
+  summary: In `GenerateDemo.vue`, the Engine dropdown has no visible effect when Browser is Chrome/Firefox/Edge (those families ignore `engine` except as a fallback that never triggers, since browser.version is always set) -- a visitor's Engine choice is silently ignored for 3 of 4 browsers with no indication. Similarly, Device is silently ignored for Windows/Mac/Linux OS choices, and only ever affects output for Android/iOS.
+  evidence: Review-surfaced (blind-hunter and edge-case-hunter layers, independently). Not a crash or invalid output -- matches the already-established "respect the visitor's own choice even if the result is odd" principle (same as the Firefox+Android case) -- but worth a copy update or UI affordance (e.g. disabling/graying out inapplicable filters) on a future pass.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-4-live-generate-demo.md`
+  summary: The Device dropdown in `GenerateDemo.vue` only ever shows 2 options ("Google Pixel 8", "iPad") because option derivation filters out presets with `device: null` -- "iPhone" (the `safari-iphone` preset's implicit default) is never directly selectable, only reachable via "Any (random)".
+  evidence: Review-surfaced (blind-hunter layer). Minor completeness gap, not a defect; would need a sentinel "iPhone (default)" entry distinct from the existing "Any (random)" option to fix cleanly.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-4-live-generate-demo.md`
+  summary: `generateSupportMatrix.ts`'s `unsafeCombinations` list is a hand-transcribed duplicate of `UserAgentGenerator.kt`'s `unsafeCombination` boolean logic, with no shared source of truth or generation step -- a future change to the real check has no forcing function to keep the TS copy in sync (beyond the file's own header comment instructing a manual re-check on version bumps).
+  evidence: Review-surfaced (blind-hunter layer). Same category as the already-accepted AD-2 version-bump-and-recheck discipline; no better mechanism exists across the Kotlin/TS boundary without codegen, which is out of scope here.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-4-live-generate-demo.md`
+  summary: All preset browser/OS versions in `generateSupportMatrix.ts` are fixed (always "Chrome 128.0", "Windows 10", etc.) even though the real generator accepts other non-blank versions for most families -- the demo's copy doesn't mention that version variety was deliberately left out of the curated preset table.
+  evidence: Review-surfaced (blind-hunter layer). Intentional simplification for a curated, verified-safe preset set; a content nicety to mention explicitly on a future pass, not a defect.

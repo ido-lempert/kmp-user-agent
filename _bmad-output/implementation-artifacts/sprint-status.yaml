@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-01-2026 11:00
-last_updated: 09-05-2026 07:30
+last_updated: 09-05-2026 10:15
 project: kmp-user-agent
 project_key: NOKEY
 tracking_system: file-system
@@ -66,7 +66,7 @@ development_status:
   5-1-walking-skeleton-site-live-with-browser-node-js-guide: review
   5-2-core-concepts-guide: review
   5-3-live-parse-demo: review
-  5-4-live-generate-demo: backlog
+  5-4-live-generate-demo: review
   5-5-android-usage-guide: backlog
   5-6-ios-usage-guide: backlog
   5-7-jvm-usage-guide: backlog

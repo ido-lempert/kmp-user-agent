@@ -1,5 +1,6 @@
 <script setup>
 import ParseDemo from './src/demo/ParseDemo.vue';
+import GenerateDemo from './src/demo/GenerateDemo.vue';
 </script>
 
 # kmp-user-agent
@@ -19,3 +20,13 @@ published `@lempert/user-agent` package.
 <ParseDemo />
 
 <noscript>This demo requires JavaScript to parse and display your browser's User-Agent -- it won't run with JavaScript disabled.</noscript>
+
+## Generate a User-Agent
+
+Pick browser/engine/OS/device filters and generate a plausible User-Agent
+string -- also via the real, published `@lempert/user-agent` package. Leave
+any filter on "Any (random)" and it's filled in for you.
+
+<GenerateDemo />
+
+<noscript>This demo requires JavaScript to generate a User-Agent string -- it won't run with JavaScript disabled.</noscript>
