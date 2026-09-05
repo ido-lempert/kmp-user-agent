@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-01-2026 11:00
-last_updated: 09-04-2026 (revised)
+last_updated: 09-05-2026 02:20
 project: kmp-user-agent
 project_key: NOKEY
 tracking_system: file-system
@@ -46,11 +46,6 @@ development_status:
   epic-2: in-progress
   2-1-generate-a-user-agent-string-from-browser-engine-data: review
   2-2-generate-a-user-agent-string-including-os-device-data: review
-  # Verified 2026-09-02: both ACs already satisfied by prior work, no new
-  # spec/code needed -- Story 1.4's sample apps already call generate() too,
-  # and Stories 2.1/2.2's 31 generate tests already cover browser+engine/OS/
-  # device across all four targets via the existing CI gate (all confirmed
-  # passing via a fresh `./gradlew :library:allTests` run).
   2-3-validate-generation-across-all-four-targets: review
   epic-2-retrospective: optional
 
@@ -60,13 +55,19 @@ development_status:
   3-3-verify-fresh-project-consumption-of-the-published-library: backlog
   epic-3-retrospective: optional
 
-  # Added 2026-09-04 via Sprint Change Proposal (sprint-change-proposal-2026-09-04.md):
-  # composable type-pack API supersedes Epics 1-2's fixed-shape parse()/generate().
   epic-4: in-progress
-  4-1-redesign-parse-generate-as-composable-type-packs-validated-via-npm-node: review
-  4-2-validate-type-pack-api-parity-across-all-four-targets-and-republish: review
-  # Added 2026-09-04: picks up the bot/AI-agent follow-up deferred from Story 4.1.
+  4-1-redesign-parse-generate-as-composable-type-packs-validated-v: review
+  4-2-validate-type-pack-api-parity-across-all-four-targets-and-re: review
   4-3-add-bot-and-ai-agent-detection-packs: review
-  # Added 2026-09-04: extends Story 4.3's rosters at the human's explicit direction.
   4-4-expand-bot-and-ai-agent-rosters: review
   epic-4-retrospective: optional
+
+  epic-5: in-progress
+  5-1-walking-skeleton-site-live-with-browser-node-js-guide: review
+  5-2-core-concepts-guide: backlog
+  5-3-live-parse-demo: backlog
+  5-4-live-generate-demo: backlog
+  5-5-android-usage-guide: backlog
+  5-6-ios-usage-guide: backlog
+  5-7-jvm-usage-guide: backlog
+  epic-5-retrospective: optional

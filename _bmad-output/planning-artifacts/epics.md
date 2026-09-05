@@ -3,6 +3,8 @@ stepsCompleted: [step-01-validate-prerequisites, step-02-design-epics, step-03-c
 inputDocuments:
   - _bmad-output/specs/spec-user-agent/SPEC.md
   - _bmad-output/planning-artifacts/architecture/architecture-kmp-user-agent-2026-09-01/ARCHITECTURE-SPINE.md
+  - _bmad-output/specs/spec-docs-site/SPEC.md
+  - _bmad-output/planning-artifacts/architecture/architecture-kmp-user-agent-2026-09-04-docs-site/ARCHITECTURE-SPINE.md
 ---
 
 # kmp-user-agent - Epic Breakdown
@@ -22,6 +24,8 @@ FR2: A consumer can build a valid User-Agent string from structured input data �
 FR3: A consumer calls one common Kotlin Multiplatform API for parse and generate that behaves identically from Android, iOS, JVM, and JS — the same call site compiles and returns correct results on all four MVP targets. (CAP-3)
 
 FR4: The library is published as an MIT-licensed multiplatform artifact consumable via standard package managers (Maven Central for Kotlin/JVM/Android/iOS consumers, npm for JS consumers), such that a fresh project can add the dependency and successfully parse/generate a UA string on each MVP target. (CAP-4)
+
+FR5: *(Added 2026-09-05 — see `_bmad-output/specs/spec-docs-site/SPEC.md`.)* A prospective adopter can self-serve documentation and a live interactive demonstration of parse/generate — without cloning the repo — via a GitHub Pages site: a working parse demo of their own browser's User-Agent, a filter-driven generate demo that randomizes any unset filter, and a usage guide per MVP platform (Android, iOS, JVM, Browser+Node.js). (spec-docs-site CAP-1..7)
 
 ### NonFunctional Requirements
 
@@ -63,6 +67,7 @@ FR1: Epic 1 - Parse a User-Agent string into structured data
 FR2: Epic 2 - Generate a User-Agent string from structured data
 FR3: Epic 1 (parse side) + Epic 2 (generate side) - One common API behaving identically across Android/iOS/JVM/JS
 FR4: Epic 3 - Publish as MIT-licensed multiplatform artifact via Maven Central + npm
+FR5: Epic 5 - Self-serve docs site with live parse/generate demos and per-platform usage guides
 
 ## Epic List
 
@@ -81,6 +86,10 @@ A consumer can add the library as a real dependency from Maven Central (Kotlin/A
 ### Epic 4: Composable, Tree-Shakeable Type-Pack API
 *(Added 2026-09-04 via Sprint Change Proposal — see `sprint-change-proposal-2026-09-04.md`.)* A consumer calls `UserAgentParser(...packs)` / `UserAgentGenerator(...packs)` with any combination of built-in or custom type packs and gets back the parse/generate function, with unused packs excluded from the JS bundle. Supersedes the fixed-shape API shipped in Epics 1–2 (AD-2/AD-3 amended). The regex-matching engine, uap-core vendoring/codegen mechanics, and Maven Central + npm publish pipelines from Epics 1–3 are reused as-is.
 **FRs covered:** FR3 (amended), FR4 (republish)
+
+### Epic 5: kmp-user-agent Docs Site
+*(Added 2026-09-05 — see `_bmad-output/specs/spec-docs-site/SPEC.md` and its architecture companion at `_bmad-output/planning-artifacts/architecture/architecture-kmp-user-agent-2026-09-04-docs-site/ARCHITECTURE-SPINE.md`. Sliced vertically: each story is an independently deployable, demoable increment of the live site, not a horizontal layer.)* A prospective adopter reaches a live GitHub Pages site (`docs-site/`, a standalone Node/Vite project outside the Gradle build, publishing only via the published `@lempert/user-agent` npm package — never in-repo Kotlin source) with a working parse demo of their own browser, a filter-driven generate demo that randomizes unset filters, and a usage guide per MVP platform.
+**FRs covered:** FR5
 
 ## Epic 1: Parse a User-Agent String
 
@@ -398,3 +407,137 @@ So that more well-known bots and AI/LLM crawlers are detected out of the box.
 **Given** the expanded rosters
 **When** the shared `commonTest` corpus runs
 **Then** it still passes identically on all four MVP targets, with new cases covering the added entries
+
+## Epic 5: kmp-user-agent Docs Site
+
+*(Added 2026-09-05 — see `_bmad-output/specs/spec-docs-site/SPEC.md` and its architecture companion. Sliced vertically per the Vertical Development method: each story below is an independently deployable, demoable increment of the live site.)*
+
+A prospective adopter reaches a live GitHub Pages site with a working parse demo of their own browser, a filter-driven generate demo that randomizes unset filters, and a usage guide per MVP platform (Android, iOS, JVM, Browser+Node.js).
+
+### Story 5.1: Walking Skeleton — Site Live with Browser+Node.js Guide
+
+As a prospective adopter of the library,
+I want a real, live docs site with working navigation/search and a correct Browser+Node.js usage guide,
+So that I can confirm the library exists and works for JS/web before investing further.
+
+**Acceptance Criteria:**
+
+**Given** `docs-site/`, a standalone Node/Vite (VitePress) project living entirely outside `settings.gradle.kts`
+**When** its `package.json` and committed `package-lock.json` are inspected
+**Then** they pin an exact/caret version of `@lempert/user-agent` (starting at `0.2.0`), never `latest` (spine AD-2)
+
+**Given** a push to `master` touching `docs-site/**` or the workflow file
+**When** the GitHub Actions workflow runs
+**Then** it runs `npm ci`, builds the VitePress site, packages the output with `actions/upload-pages-artifact@v5`, and publishes it with `actions/deploy-pages@v5`, with the repo's Pages source set to "GitHub Actions" (spine AD-4)
+
+**Given** the deployed site
+**When** a visitor loads `https://ido-lempert.github.io/kmp-user-agent/`
+**Then** it is live, `.vitepress/config.ts` has `base: '/kmp-user-agent/'` so no page 404s, and nav/sidebar/search work
+
+**Given** the site must read as professional/expert-grade reference documentation (Angular-docs-like, per spec Constraints)
+**When** VitePress's default theme is used (not a custom or minimal one)
+**Then** every page shows a persistent sidebar nav, a main content area, and code snippets with a one-click copy control
+
+**Given** the site's first real content page
+**When** a JS/web developer follows the Browser+Node.js usage guide
+**Then** it demonstrates real, working code for both a browser consumption path (bundler import and/or CDN script tag) and a Node.js consumption path (import/require) against the published `@lempert/user-agent` package — not a placeholder, and not just one runtime
+
+### Story 5.2: Core-Concepts Guide
+
+As a developer reading any platform guide,
+I want one shared page explaining the `UserAgentInfo` model and type-pack composition,
+So that I don't need each platform guide to re-explain the same model.
+
+**Acceptance Criteria:**
+
+**Given** the library's real public API (`UserAgentInfo` with `browser`/`engine`/`os`/`device`/`bot`/`aiAgent`, and `UserAgentParser(vararg packs)`/`UserAgentGenerator(vararg packs)`)
+**When** the core-concepts guide page is published
+**Then** it explains that model and the pack-composition pattern accurately against the actual shipped API
+
+**Given** the core-concepts page and every platform guide (Story 5.1's JS guide, and Stories 5.5–5.7's Android/iOS/JVM guides)
+**When** a platform guide's nav is inspected
+**Then** it links to the core-concepts page instead of re-explaining the model itself
+
+### Story 5.3: Live Parse Demo
+
+As a visitor to the intro page,
+I want to see my own browser's User-Agent parsed in real time,
+So that I can confirm the library correctly identifies my real browser before adopting it.
+
+**Acceptance Criteria:**
+
+**Given** the intro page's `ParseDemo` component
+**When** a visitor loads it in a real browser
+**Then** it calls `UserAgentParser(UserAgentAllTypes)` from the pinned `@lempert/user-agent` package on `navigator.userAgent` with no manual input, and renders the resulting `browser`/`engine`/`os`/`device`/`bot`/`aiAgent` fields correctly for that visitor's real browser
+
+**Given** `ParseDemo`'s implementation
+**When** inspected
+**Then** no parse logic is reimplemented in site JS — every result comes from the imported package's exported `UserAgentParser` factory only (spine AD-2)
+
+### Story 5.4: Live Generate Demo
+
+As a visitor to the intro page,
+I want to pick browser/engine/os/device filters and generate a User-Agent string, with anything I leave unset filled in for me,
+So that I can see the library's generate direction working without having to know every valid value myself.
+
+**Acceptance Criteria:**
+
+**Given** the intro page's `GenerateDemo` component and `generateSupportMatrix.ts`'s named, complete presets (plain primitives only, never `Component`/`Device` class instances, per spine AD-3)
+**When** a visitor selects any subset of browser/engine/os/device filters and leaves the rest unset
+**Then** the demo picks a random preset, keeps the visitor's own selections for chosen fields, fills unset fields from that preset, constructs `Component`/`Device`/`UserAgentInfo` instances from those values, and calls `UserAgentGenerator(UserAgentBrowserTypes, UserAgentEngineTypes, UserAgentOsTypes, UserAgentDeviceTypes)` to produce a plausible, non-degraded UA string
+
+**Given** a visitor's selections combined with a preset's remaining fields would recreate an `unsafeCombination` (Firefox+Android, Firefox+iOS, or Safari+Android, per `UserAgentGenerator.kt`'s `generateOsToken`)
+**When** the demo assembles the result
+**Then** it falls back to a different preset rather than producing a degraded result with the OS token silently dropped
+
+**Given** every filter left empty
+**When** the visitor generates
+**Then** they still get a plausible, non-degraded generated UA string on demand — not a blank or broken result
+
+### Story 5.5: Android Usage Guide
+
+As an Android developer,
+I want a guide that takes me from zero to a working parse/generate call,
+So that I can adopt the library on Android without reverse-engineering it from source.
+
+**Acceptance Criteria:**
+
+**Given** the Android guide page
+**When** an Android developer follows its setup and usage steps
+**Then** they can add the library dependency and successfully call parse/generate on Android, verified accurate against the library's actual public API
+
+**Given** the guide needs to explain the shared model or pack composition
+**When** it does
+**Then** it links to the core-concepts guide (Story 5.2) rather than re-explaining it
+
+### Story 5.6: iOS Usage Guide
+
+As an iOS developer,
+I want a guide that takes me from zero to a working parse/generate call,
+So that I can adopt the library on iOS without reverse-engineering it from source.
+
+**Acceptance Criteria:**
+
+**Given** the iOS guide page
+**When** an iOS developer follows its setup and usage steps
+**Then** they can add the library dependency and successfully call parse/generate on iOS, verified accurate against the library's actual public API
+
+**Given** the guide needs to explain the shared model or pack composition
+**When** it does
+**Then** it links to the core-concepts guide (Story 5.2) rather than re-explaining it
+
+### Story 5.7: JVM Usage Guide
+
+As a JVM developer,
+I want a guide that takes me from zero to a working parse/generate call,
+So that I can adopt the library on JVM without reverse-engineering it from source.
+
+**Acceptance Criteria:**
+
+**Given** the JVM guide page
+**When** a JVM developer follows its setup and usage steps
+**Then** they can add the library dependency and successfully call parse/generate on JVM, verified accurate against the library's actual public API
+
+**Given** the guide needs to explain the shared model or pack composition
+**When** it does
+**Then** it links to the core-concepts guide (Story 5.2) rather than re-explaining it

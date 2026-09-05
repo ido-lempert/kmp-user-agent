@@ -1,0 +1,74 @@
+name: Deploy docs site
+
+# Scoped to docs-site/** (plus this workflow file itself) so a library-only
+# commit never triggers a site rebuild/deploy -- see ARCHITECTURE-SPINE.md
+# AD-4. Deliberately a separate file from ci.yml (the Gradle build/test
+# workflow), which this workflow must never touch or depend on.
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs-site/**'
+      - '.github/workflows/docs-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deploy at a time; never cancel one that's already publishing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Guards a manual workflow_dispatch the same way the push trigger's
+    # `branches: [master]` does -- without this, dispatching from any other
+    # branch would build and deploy that branch's content to the live,
+    # production Pages site.
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      # `npm ci`, never `npm install`, so the build only ever resolves the
+      # exact tree recorded in the committed package-lock.json (AD-2).
+      - name: Install dependencies
+        working-directory: docs-site
+        run: npm ci
+
+      - name: Build with VitePress
+        working-directory: docs-site
+        run: npm run docs:build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs-site/.vitepress/dist
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

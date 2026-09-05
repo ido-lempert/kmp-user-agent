@@ -133,3 +133,19 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-4-4-expand-bot-and-ai-agent-rosters.md`
   summary: `AdsBot-Google`'s and `GoogleOther`'s bare regexes (`Regex("AdsBot-Google")`, `Regex("GoogleOther")`) also match Google's distinct `AdsBot-Google-Mobile` and `GoogleOther-Image`/`GoogleOther-Video` crawler variants, collapsing them into the same `Component` rather than distinguishing the variant.
   evidence: Review-surfaced (edge-case-hunter layer). Not incorrect (the collapsed variants are still genuinely Google crawlers of the stated family), just less granular than possible; worth adding negative-lookahead exclusions or separate entries for the variants if that granularity ever matters to a consumer.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-1-walking-skeleton-site-live-with-browser-node-js-guide.md`
+  summary: The JS guide's "Next steps" section mentions passing a narrower pack (e.g. `UserAgentBrowserTypes`) instead of `UserAgentAllTypes` to keep a bundle smaller, but no code example in the guide actually demonstrates it — every sample uses `UserAgentAllTypes`.
+  evidence: Review-surfaced (blind-hunter layer). Not incorrect, just under-demonstrated; a natural addition once the guide gets a revision pass, not required for this story's walking-skeleton scope.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-1-walking-skeleton-site-live-with-browser-node-js-guide.md`
+  summary: The deployed site's VitePress theme configures none of `editLink`, `lastUpdated`, `logo`, or `head` entries for favicon/Open Graph social-preview metadata, and the build generates no `sitemap.xml`/`robots.txt`.
+  evidence: Review-surfaced (blind-hunter layer). Cosmetic/SEO polish appropriate once more content exists (post Stories 5.2-5.7); out of scope for a walking-skeleton story whose only content is one guide page.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-1-walking-skeleton-site-live-with-browser-node-js-guide.md`
+  summary: `docs-site/package.json` has no `engines` field constraining the Node version for local docs development/contribution, even though the shipped guide content is precise about Node version cutoffs for library consumers.
+  evidence: Review-surfaced (blind-hunter layer). Low-priority DX nicety; GitHub Actions pins the CI runtime explicitly regardless, so this only affects local contributor consistency.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-1-walking-skeleton-site-live-with-browser-node-js-guide.md`
+  summary: `docs-site/guide/js.md`'s "full pack list and API reference" link points to a `#api` anchor in the root `README.md`, a cross-file reference with no automated link-check in CI -- if that heading is ever renamed, the link breaks silently.
+  evidence: Review-surfaced (blind-hunter layer). Low-priority robustness gap; overlaps with the already-accepted "no pre-merge CI/lint" non-goal for this epic's v1 (see ARCHITECTURE-SPINE.md Deferred), so not worth a dedicated fix in isolation.

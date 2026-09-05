@@ -1,0 +1,51 @@
+- id: "1"
+  title: Walking skeleton
+  description: >-
+    Deploy a real VitePress site end-to-end via the GitHub Actions Pages
+    pipeline (SPEC.md CAP-1), live at the default project-page URL with
+    nav/sidebar/search, carrying the Browser+Node.js JS usage guide as its
+    first real content page.
+  spec_checkpoint: true
+  done_checkpoint: true
+
+- id: "2"
+  title: Core-concepts guide
+  description: >-
+    Add the shared guide page (SPEC.md CAP-7) explaining the UserAgentInfo
+    model and type-pack composition once, linked from every platform guide
+    instead of each guide re-explaining it.
+
+- id: "3"
+  title: Live parse demo
+  description: >-
+    Add the intro-page component (SPEC.md CAP-2) that parses the visitor's
+    own browser User-Agent in real time via the real published
+    @lempert/user-agent package.
+
+- id: "4"
+  title: Live generate demo
+  description: >-
+    Add the intro-page component (SPEC.md CAP-3) that generates a
+    User-Agent string from browser/engine/os/device filters via the real
+    published library, randomizing any filter left unset to a known-valid
+    preset.
+  spec_checkpoint: true
+  done_checkpoint: true
+
+- id: "5"
+  title: Android usage guide
+  description: >-
+    Add the Android platform guide (SPEC.md CAP-4): setup and a working
+    parse/generate call, verified against the library's actual public API.
+
+- id: "6"
+  title: iOS usage guide
+  description: >-
+    Add the iOS platform guide (SPEC.md CAP-5): setup and a working
+    parse/generate call, verified against the library's actual public API.
+
+- id: "7"
+  title: JVM usage guide
+  description: >-
+    Add the JVM platform guide (SPEC.md CAP-6): setup and a working
+    parse/generate call, verified against the library's actual public API.
