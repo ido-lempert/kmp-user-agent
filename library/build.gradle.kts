@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import java.io.File
 
@@ -493,6 +494,12 @@ val prepareNoticeForAndroid = tasks.register("prepareNoticeForAndroid") {
 // =============================================================================
 
 kotlin {
+    // XCFramework distribution for the SPM binaryTarget used by docs-site/guide/ios.md
+    // and the root Package.swift. Kotlin 2.4.10 is below the 2.4.20-Beta2 threshold
+    // where Package.swift is auto-generated, so it's hand-written -- see
+    // https://kotlinlang.org/docs/multiplatform/multiplatform-spm-export.html.
+    val xcf = XCFramework("Library")
+
     listOf(
         iosArm64(),
         iosSimulatorArm64(),
@@ -500,6 +507,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "Library"
             isStatic = true
+            xcf.add(this)
         }
     }
 
