@@ -17,6 +17,7 @@ export default defineConfig(({ command }) => ({
     nav: [
       { text: 'Core Concepts', link: '/guide/core-concepts' },
       { text: 'Guide', link: '/guide/js' },
+      { text: 'Android', link: '/guide/android' },
     ],
 
     sidebar: [
@@ -25,6 +26,7 @@ export default defineConfig(({ command }) => ({
         items: [
           { text: 'Core Concepts', link: '/guide/core-concepts' },
           { text: 'Browser & Node.js (JS)', link: '/guide/js' },
+          { text: 'Android', link: '/guide/android' },
         ],
       },
     ],

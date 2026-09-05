@@ -201,3 +201,23 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-5-4-live-generate-demo.md`
   summary: All preset browser/OS versions in `generateSupportMatrix.ts` are fixed (always "Chrome 128.0", "Windows 10", etc.) even though the real generator accepts other non-blank versions for most families -- the demo's copy doesn't mention that version variety was deliberately left out of the curated preset table.
   evidence: Review-surfaced (blind-hunter layer). Intentional simplification for a curated, verified-safe preset set; a content nicety to mention explicitly on a future pass, not a defect.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-5-android-usage-guide.md`
+  summary: `android.md` doesn't mention the required Java/JVM toolchain compatibility (the library's Android target compiles with JVM 11) or the minimum AGP/Gradle version needed to correctly resolve this KMP-published AAR's variant metadata (built via the newer `com.android.kotlin.multiplatform.library` AGP plugin) -- both plausible, if uncommon, sources of an obscure build failure for a consumer on older tooling.
+  evidence: Review-surfaced (blind-hunter layer). Real but esoteric; most modern Android projects already meet both bars, and pinning an exact minimum AGP version would need separate verification work.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-5-android-usage-guide.md`
+  summary: `android.md` doesn't caveat that `System.getProperty("http.agent")` reflects the platform's default `HttpURLConnection`/WebView User-Agent, not necessarily what a given HTTP client (OkHttp, Retrofit, etc.) an app actually uses will send on the wire -- a likely point of confusion for anyone trying to detect their own app's real outgoing UA.
+  evidence: Review-surfaced (blind-hunter layer). Real nuance, but tangential to the library itself (an HTTP-client behavior note, not a library-usage note); worth adding on a future content pass.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-5-android-usage-guide.md`
+  summary: The site nav keeps a generic "Guide" label pointing at `/guide/js` alongside the new, explicitly-named "Android" entry -- reads as an inconsistency now that multiple named platform guides exist side by side, rather than a considered nav hierarchy.
+  evidence: Review-surfaced (blind-hunter layer). Best addressed once all platform guides exist (after Stories 5.6/5.7 add iOS/JVM) rather than renamed incrementally per story.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-5-android-usage-guide.md`
+  summary: No "Testing" guidance for Android consumers (e.g. exercising parse/generate results in host-side unit tests) and no clarification that the guide's instructions apply equally inside a Kotlin Multiplatform project's own `androidMain` source set, not just a plain single-platform Android app module.
+  evidence: Review-surfaced (blind-hunter layer). Real nice-to-haves; the guide's current generic "your module's build.gradle.kts" framing already technically covers the KMP case without change, and a testing section would be new scope beyond parity with the JS guide.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-5-android-usage-guide.md`
+  summary: The install snippet doesn't remind readers that most projects already have Maven Central in their default repositories but some may not (`repositories { mavenCentral() }` needed) -- low-probability given Maven Central is the default in virtually all modern Android project templates.
+  evidence: Review-surfaced (edge-case-hunter layer). Low-value boilerplate the site doesn't otherwise include elsewhere; not worth the added length for this story's guide.

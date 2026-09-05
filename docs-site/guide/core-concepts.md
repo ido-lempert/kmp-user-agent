@@ -166,4 +166,4 @@ both fine; neither re-does the underlying detection setup work.
 Pick the platform guide for the language you're calling this from -- each
 one shows the exact install steps and language bindings for that platform,
 building on the model and composition pattern explained above, for example
-the [Browser & Node.js guide](./js).
+the [Browser & Node.js guide](./js) or the [Android guide](./android).
