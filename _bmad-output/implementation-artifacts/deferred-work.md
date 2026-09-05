@@ -157,3 +157,31 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-5-2-core-concepts-guide.md`
   summary: `core-concepts.md`'s custom-pack example shows writing into `UserAgentInfo.custom` (via `detect`) but never shows a consumer reading it back out (e.g. `info.custom["myThing"]`), leaving the round-trip usage incomplete.
   evidence: Review-surfaced (blind-hunter layer). Minor completeness gap, not misleading; a natural addition on a future content pass over this guide.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-3-live-parse-demo.md`
+  summary: The live parse demo's Bot and AI Agent fields can never show real data with the currently pinned `@lempert/user-agent@^0.2.0` dependency -- verified by running the actual installed package against real bot/AI-crawler UA strings (`Googlebot/2.1`, `GPTBot/1.0`), both return `null`. Bot/AI-agent detection exists in this repo's source (Stories 4.3/4.4) but was never published to npm under a version `docs-site` depends on, so every visitor sees "Not detected" for those two rows regardless of their actual User-Agent.
+  evidence: Review-surfaced (blind-hunter layer), independently reproduced. Not a demo code defect -- the component correctly renders whatever the real published package returns. Needs a new npm version published (a deliberate, separate action per architecture AD-2) and `docs-site/package.json`'s dependency bumped to it. Flagged directly to the human, not silently patched around.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-3-live-parse-demo.md`
+  summary: No TypeScript type-checking (`tsc`/`vue-tsc`) runs anywhere in the build or CI pipeline for `ParseDemo.vue` -- Vite/esbuild strips `<script setup lang="ts">` types without checking them, so a wrong import, prop type, or API misuse would silently pass CI.
+  evidence: Review-surfaced (blind-hunter layer). Overlaps with the already-accepted "no pre-merge CI/lint" non-goal for this epic's v1 (ARCHITECTURE-SPINE.md Deferred); not worth a dedicated fix in isolation.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-3-live-parse-demo.md`
+  summary: No component-level automated test (e.g. Vitest + `@vue/test-utils`) exists for `ParseDemo.vue` -- `formatComponent`/`formatDevice` and the three template branches (loading/error/success) have no unit or e2e coverage; a formatting regression (e.g. dropping a null filter, producing `"Chrome undefined"`) would ship with a fully green CI run, since the two build-safety CI checks only inspect pre-hydration static HTML, not client-side-only rendering logic.
+  evidence: Review-surfaced (verification-gap and blind-hunter layers, independently). Matches the architecture spine's already-accepted "testing convention for demo components... not fixed here" Deferred item from Story 5.1's own review -- not a new gap, a recurrence of an already-tracked one.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-3-live-parse-demo.md`
+  summary: The two `docs-deploy.yml` CI safety checks added in this story are coupled to `ParseDemo.vue`'s exact current copy via untied magic strings ("Detecting your browser", "Node.js/") with nothing keeping them in sync -- a future wording change to the placeholder text would silently defang the CI gate without anyone noticing until the next real regression ships.
+  evidence: Review-surfaced (blind-hunter layer). Real but no clean shared-constant mechanism exists across a `.vue` file and a `.yml` workflow in this stack; better addressed if/when a real test framework is introduced for `docs-site` (see the testing-convention deferral above).
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-3-live-parse-demo.md`
+  summary: The crash-style CI grep (`ReferenceError|TypeError|SyntaxError|is not defined`) scans the whole build log for the whole site rather than being scoped to a specific component, and the dist-content check only inspects `docs-site/.vitepress/dist/index.html` -- neither generalizes if a future page reuses a similar client-only-global pattern elsewhere on the site.
+  evidence: Review-surfaced (blind-hunter layer, across two consecutive rounds). The dist-content check (this story's actual load-bearing fix) already closes the concrete regression found; broadening further has diminishing returns and real false-positive costs already weighed once this loop.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-3-live-parse-demo.md`
+  summary: The live parse demo shows no indicator of which `@lempert/user-agent` version produced the result, despite the page's copy leaning on "the real, published package" as its credibility hook -- useful both for visitor trust and for reproducing a user-reported discrepancy.
+  evidence: Review-surfaced (blind-hunter layer). Nice-to-have, not required by this story's acceptance criteria.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-3-live-parse-demo.md`
+  summary: `docs-site/guide/js.md` documents the same `UserAgentParser([UserAgentAllTypes.get()])` call shape the live demo uses, but neither page links to the other -- a reader of the guide isn't pointed to the live demo as a working sanity check, and the demo doesn't link back to the guide for the full API.
+  evidence: Review-surfaced (blind-hunter layer). Nice-to-have navigation improvement, low urgency.

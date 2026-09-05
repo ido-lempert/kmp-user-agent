@@ -51,9 +51,57 @@ jobs:
         working-directory: docs-site
         run: npm ci
 
+      # VitePress's SSR render pass logs a per-page error (e.g. a
+      # ReferenceError from a browser-only global read outside onMounted)
+      # to stderr but still exits 0 -- it silently drops the broken
+      # component from the static HTML instead of failing the build.
+      # Capture the full output here so later steps can inspect it, not
+      # just trust this step's exit code.
       - name: Build with VitePress
         working-directory: docs-site
-        run: npm run docs:build
+        run: |
+          set -o pipefail
+          npm run docs:build 2>&1 | tee "$RUNNER_TEMP/docs-build.log"
+
+      # Catches crash-style SSR failures (a genuinely-undefined browser-only
+      # global, e.g. `window.*`, throws during SSR and logs one of these).
+      # Word-boundaried to avoid false positives from incidental substring
+      # matches elsewhere in the build log.
+      #
+      # This check alone is NOT sufficient: a top-level `navigator.userAgent`
+      # read does not crash or log anything here at all, because Node 21+'s
+      # own built-in `navigator` polyfill silently resolves it to
+      # "Node.js/<version>" -- see the next step.
+      - name: Check build output for crash-style SSR errors
+        run: |
+          if grep -iE '\b(ReferenceError|TypeError|SyntaxError)\b|\bis not defined\b' "$RUNNER_TEMP/docs-build.log"; then
+            echo "::error::VitePress SSR build logged a crash-style error above (ReferenceError/TypeError/SyntaxError/'is not defined') -- a browser-only global was likely read outside onMounted. Failing the job rather than deploying a broken/degraded page."
+            exit 1
+          fi
+
+      # Closes the gap the log-text check above cannot: a top-level
+      # `navigator.userAgent` read in ParseDemo.vue doesn't throw during SSR
+      # (Node's built-in `navigator` polyfill resolves it to
+      # "Node.js/<version>" instead), so it produces a clean exit code and a
+      # clean build log while silently baking a fake value into the static
+      # HTML. Inspecting the actual built artifact -- not inferring from log
+      # text -- is what catches that.
+      - name: Check built dist for silently-baked SSR values
+        working-directory: docs-site
+        run: |
+          DIST_INDEX=".vitepress/dist/index.html"
+          if [ ! -f "$DIST_INDEX" ]; then
+            echo "::error::$DIST_INDEX not found -- the build may have failed before producing output."
+            exit 1
+          fi
+          if ! grep -q "Detecting your browser" "$DIST_INDEX"; then
+            echo "::error::$DIST_INDEX is missing ParseDemo's loading-placeholder text ('Detecting your browser…') -- the SSR pre-mount state was not rendered as expected."
+            exit 1
+          fi
+          if grep -q "Node.js/" "$DIST_INDEX"; then
+            echo "::error::$DIST_INDEX contains 'Node.js/' -- this is the signature of Node's navigator.userAgent polyfill leaking into the static HTML, meaning navigator.userAgent was read outside onMounted during SSR."
+            exit 1
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
