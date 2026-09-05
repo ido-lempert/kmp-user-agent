@@ -14,12 +14,18 @@ export default defineConfig(({ command }) => ({
   cleanUrls: true,
 
   themeConfig: {
-    nav: [{ text: 'Guide', link: '/guide/js' }],
+    nav: [
+      { text: 'Core Concepts', link: '/guide/core-concepts' },
+      { text: 'Guide', link: '/guide/js' },
+    ],
 
     sidebar: [
       {
         text: 'Guide',
-        items: [{ text: 'Browser & Node.js (JS)', link: '/guide/js' }],
+        items: [
+          { text: 'Core Concepts', link: '/guide/core-concepts' },
+          { text: 'Browser & Node.js (JS)', link: '/guide/js' },
+        ],
       },
     ],
 

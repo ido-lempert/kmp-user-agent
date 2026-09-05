@@ -114,10 +114,7 @@ main();
 
 ## Next steps
 
-Every field on the returned `UserAgentInfo` -- `browser`, `engine`, `os`,
-`device`, `bot`, `aiAgent` -- stays `null` unless a pack you pass populates
-it. Pass `UserAgentAllTypes` for full detection, or a narrower pack (e.g.
-`UserAgentBrowserTypes` alone) to keep a bundled build smaller. See the
-[project README](https://github.com/ido-lempert/kmp-user-agent#api) for the
-full pack list (including `UserAgentBotTypes`/`UserAgentAIAgentTypes`) and API
-reference.
+For the platform-agnostic `UserAgentInfo` model and the built-in type packs
+(including `UserAgentBotTypes`/`UserAgentAIAgentTypes`) behind the
+`UserAgentAllTypes`/`UserAgentBrowserTypes`-style constants used above, see
+[Core Concepts](./core-concepts).

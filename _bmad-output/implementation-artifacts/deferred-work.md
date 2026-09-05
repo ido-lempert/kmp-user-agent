@@ -149,3 +149,11 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-5-1-walking-skeleton-site-live-with-browser-node-js-guide.md`
   summary: `docs-site/guide/js.md`'s "full pack list and API reference" link points to a `#api` anchor in the root `README.md`, a cross-file reference with no automated link-check in CI -- if that heading is ever renamed, the link breaks silently.
   evidence: Review-surfaced (blind-hunter layer). Low-priority robustness gap; overlaps with the already-accepted "no pre-merge CI/lint" non-goal for this epic's v1 (see ARCHITECTURE-SPINE.md Deferred), so not worth a dedicated fix in isolation.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-2-core-concepts-guide.md`
+  summary: The root `README.md`'s "API" section and the new `docs-site/guide/core-concepts.md` now independently explain the same pack-composition/merge-semantics/custom-pack content, with no cross-link either direction -- two copies likely to drift out of sync on a future edit to either one.
+  evidence: Review-surfaced (blind-hunter layer). Fixing this cleanly means either cross-linking or having one summarize-and-point-to the other, which touches `README.md` -- outside this story's `docs-site/` scope and not something to do without explicit direction.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-2-core-concepts-guide.md`
+  summary: `core-concepts.md`'s custom-pack example shows writing into `UserAgentInfo.custom` (via `detect`) but never shows a consumer reading it back out (e.g. `info.custom["myThing"]`), leaving the round-trip usage incomplete.
+  evidence: Review-surfaced (blind-hunter layer). Minor completeness gap, not misleading; a natural addition on a future content pass over this guide.
