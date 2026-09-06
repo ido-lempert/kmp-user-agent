@@ -15,8 +15,12 @@ import PackageDescription
 // package at this commit/tag.
 let package = Package(
     name: "Library",
+    // .v15, not a lower value -- the compiled XCFramework's actual
+    // MinimumOSVersion is 15.0 (confirmed by inspecting the built
+    // Library.xcframework's Info.plist directly). A lower declared platform
+    // here would pass SPM's own check but still fail at link time.
     platforms: [
-        .iOS(.v14),
+        .iOS(.v15),
     ],
     products: [
         .library(name: "Library", targets: ["Library"])
