@@ -233,3 +233,39 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-5-6-ios-usage-guide.md`
   summary: The XCFramework has no `iosX64` (Intel simulator) slice -- a pre-existing limitation of `library/build.gradle.kts`'s iOS target list (predates this story), now user-visible for the first time via real SPM distribution rather than being invisible KMP-Gradle-only scope.
   evidence: Confirmed via `library/build.gradle.kts`; not caused by this story. Now documented as a caveat in `docs-site/guide/ios.md`. Adding `iosX64` would require extending the library's own MVP target list, a separate decision beyond this story's scope.
+
+- source_spec: none
+  summary: Add a React Native usage guide to docs-site, following the same per-platform pattern as the Android/iOS/JVM guides.
+  evidence: Split from a combined "docs-site expansion" ask (2026-09-06) covering 8 distinct deliverables; this one carries its own open question -- whether the published `@lempert/user-agent` npm package actually resolves and runs under Metro/Hermes -- which needs verifying before the guide's content (or its viability) can be written, unlike the already-planned JVM guide picked as this round's first goal.
+
+- source_spec: none
+  summary: Add a docs-site snippet demonstrating a custom `UserAgentTypePack` (either a full custom pack, or extending a built-in pack with an extra entry such as a new browser name or OS).
+  evidence: Split from the same combined ask; likely belongs as an addition to the existing core-concepts guide (Story 5.2) rather than a new page, but that placement decision and the example content itself are unscoped work distinct from the JVM guide.
+
+- source_spec: none
+  summary: Add a full reference page to docs-site listing every built-in browser/engine/os/device/bot/AI-agent entry across all type packs.
+  evidence: Split from the same combined ask; needs a sourcing decision (generated from `UserAgentBotTypePack.kt`/`UserAgentAIAgentTypePack.kt`/the uap-core-derived rule tables vs. hand-curated) to avoid the page drifting from the actual shipped data -- unscoped, separate work from the JVM guide.
+
+- source_spec: none
+  summary: Add a license page to docs-site surfacing the repo's MIT `LICENSE` and the vendored uap-core Apache-2.0 `NOTICE` attribution.
+  evidence: Split from the same combined ask; small and self-contained, but still a separate deliverable from the JVM guide with no dependency on it.
+
+- source_spec: none
+  summary: Add logos/icons for well-known OSes, browsers, bots, and AI agents the library detects, across relevant docs-site pages.
+  evidence: Split from the same combined ask; carries real trademark/redistribution risk on third-party brand assets that needs resolving before implementation (the user has a standing aversion to vendoring third-party assets as a data source due to supply-chain risk -- same caution likely applies to logo assets), and is cross-cutting across multiple pages rather than a single deliverable.
+
+- source_spec: none
+  summary: Rewrite the docs-site intro/landing page for a stronger hook, clearer value prop, and better visual hierarchy.
+  evidence: Split from the same combined ask; a pure copy/design pass with no new technical content, independently shippable from the JVM guide.
+
+- source_spec: none
+  summary: Add a competitor-comparison page/section (vs. other popular UA-parsing libraries) covering bundle size, parse speed, platform support, and detection coverage, to make the case for adopting this library.
+  evidence: Split from the same combined ask; explicitly flagged as the highest-risk item -- the user wants it to be persuasive enough to prompt a switch, so every claim needs real, verifiable sourcing (actual benchmarks/measurements) rather than marketing-style assertions, which is a materially different kind of work (empirical measurement) than writing guide content.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-7-jvm-usage-guide.md`
+  summary: `docs-site/guide/jvm.md` names Ktor/Spring/Javalin/servlets as the place to pull a real incoming User-Agent from, but shows no complete, runnable example wired into an actual request handler for any of them -- every code sample still parses a hardcoded literal string with a comment telling the reader to substitute their own.
+  evidence: Review-surfaced (blind-hunter layer). A full framework-specific example is a real improvement but requires picking one (or more) specific frameworks to demonstrate -- a scope decision beyond this one-shot guide's boundary, not a trivial fix.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-7-jvm-usage-guide.md`
+  summary: `docs-site/guide/jvm.md` has no "Testing" section (e.g. asserting parse/generate results in JUnit/`kotlin.test`), mirroring the same already-tracked gap on `android.md` (see the Story 5.5 deferred-work entry above); the top-nav "Guide" label ambiguity that entry also predicted would need revisiting once Stories 5.6/5.7 landed was fixed directly in this round instead of deferred again.
+  evidence: Review-surfaced (blind-hunter layer). Consistent with the Android guide's existing gap; worth a shared "Testing" pattern across platform guides once a testing convention for `docs-site` itself is decided (already tracked as a broader deferred item from Story 5.3's review).

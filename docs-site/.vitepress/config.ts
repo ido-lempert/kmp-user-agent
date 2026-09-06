@@ -12,9 +12,10 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Core Concepts', link: '/guide/core-concepts' },
-      { text: 'Guide', link: '/guide/js' },
+      { text: 'Browser & Node.js (JS)', link: '/guide/js' },
       { text: 'Android', link: '/guide/android' },
       { text: 'iOS', link: '/guide/ios' },
+      { text: 'JVM', link: '/guide/jvm' },
     ],
 
     sidebar: [
@@ -25,6 +26,7 @@ export default defineConfig({
           { text: 'Browser & Node.js (JS)', link: '/guide/js' },
           { text: 'Android', link: '/guide/android' },
           { text: 'iOS', link: '/guide/ios' },
+          { text: 'JVM', link: '/guide/jvm' },
         ],
       },
     ],
