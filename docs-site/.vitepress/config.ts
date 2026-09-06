@@ -18,6 +18,7 @@ export default defineConfig(({ command }) => ({
       { text: 'Core Concepts', link: '/guide/core-concepts' },
       { text: 'Guide', link: '/guide/js' },
       { text: 'Android', link: '/guide/android' },
+      { text: 'iOS', link: '/guide/ios' },
     ],
 
     sidebar: [
@@ -27,6 +28,7 @@ export default defineConfig(({ command }) => ({
           { text: 'Core Concepts', link: '/guide/core-concepts' },
           { text: 'Browser & Node.js (JS)', link: '/guide/js' },
           { text: 'Android', link: '/guide/android' },
+          { text: 'iOS', link: '/guide/ios' },
         ],
       },
     ],
