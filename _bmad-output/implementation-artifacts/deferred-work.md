@@ -269,3 +269,11 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-5-7-jvm-usage-guide.md`
   summary: `docs-site/guide/jvm.md` has no "Testing" section (e.g. asserting parse/generate results in JUnit/`kotlin.test`), mirroring the same already-tracked gap on `android.md` (see the Story 5.5 deferred-work entry above); the top-nav "Guide" label ambiguity that entry also predicted would need revisiting once Stories 5.6/5.7 landed was fixed directly in this round instead of deferred again.
   evidence: Review-surfaced (blind-hunter layer). Consistent with the Android guide's existing gap; worth a shared "Testing" pattern across platform guides once a testing convention for `docs-site` itself is decided (already tracked as a broader deferred item from Story 5.3's review).
+
+- source_spec: none
+  summary: `library/NOTICE`'s attribution text states the vendored uap-core files live at `vendor/uap-core/LICENSE` and `vendor/uap-core/regexes.yaml`, but `git ls-files` confirms their real paths both carry a `library/` prefix (`library/vendor/uap-core/LICENSE`, `library/vendor/uap-core/regexes.yaml`) -- the paths in `NOTICE` are stale.
+  evidence: Review-surfaced (blind-hunter layer, spec-license-page.md review) while cross-checking `docs-site/license.md` against its source file verbatim. `library/NOTICE` itself is out of scope for a docs-site-only story; the docs page was written with the corrected path, but the source-of-truth file still needs a one-line fix.
+
+- source_spec: none
+  summary: `docs-site/license.md` covers only the library's own code/data licensing (MIT + vendored Apache-2.0 uap-core data); it doesn't address what license (if any) covers the docs site's own content -- the guide prose and the Vue demo components under `docs-site/src/demo/`.
+  evidence: Review-surfaced (blind-hunter layer). Deliberately not answered by inventing a license claim -- that's an ownership/licensing decision for the human to make, not one to guess at on a page whose whole purpose is legal accuracy.

@@ -16,6 +16,7 @@ export default defineConfig({
       { text: 'Android', link: '/guide/android' },
       { text: 'iOS', link: '/guide/ios' },
       { text: 'JVM', link: '/guide/jvm' },
+      { text: 'License', link: '/license' },
     ],
 
     sidebar: [
@@ -28,6 +29,10 @@ export default defineConfig({
           { text: 'iOS', link: '/guide/ios' },
           { text: 'JVM', link: '/guide/jvm' },
         ],
+      },
+      {
+        text: 'Legal',
+        items: [{ text: 'License', link: '/license' }],
       },
     ],
 

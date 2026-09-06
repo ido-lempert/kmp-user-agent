@@ -12,7 +12,9 @@ See [Core Concepts](/guide/core-concepts) for the shared model and
 pack-composition pattern, then the [Browser & Node.js guide](/guide/js) to
 get started from JavaScript or TypeScript, the [Android guide](/guide/android)
 or [JVM guide](/guide/jvm) to get started from Kotlin, or the
-[iOS guide](/guide/ios) to get started from Swift.
+[iOS guide](/guide/ios) to get started from Swift. See [License](/license)
+for this library's MIT license and its one piece of vendored third-party
+data.
 
 ## Try it live
 
