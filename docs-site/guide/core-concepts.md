@@ -142,6 +142,67 @@ to `applyToGenerate`'s `{ null }` default. A pack that also wants to
 contribute to generation defines `applyToGenerate` too, e.g. returning a
 literal token when `info.custom["myThing"]` is set.
 
+Read a `custom` entry back out the same way you'd read any map:
+
+```kotlin
+val info = parse(userAgentString)
+val myThing = info.custom["myThing"] // Component? -- null if myPack didn't match
+println(myThing?.name)
+```
+
+## Extending a named field instead of `custom`
+
+Reach for `custom` when what you're adding doesn't fit any named field, or
+when you don't need it to interact with built-in packs at all. If instead
+you want to override or add detection for one of the named fields
+themselves (`browser`/`engine`/`os`/`device`/`bot`/`aiAgent`) -- e.g. giving
+a proper name to an in-house browser fork that a built-in pack would
+otherwise misdetect -- populate that field directly instead of `custom`:
+
+```kotlin
+private val acmeBrowserRegex = Regex("AcmeBrowser/([0-9.]+)") // compiled once, not per detect() call
+
+val acmeBrowserPack = UserAgentTypePack(
+    id = "acmeBrowser",
+    detect = { userAgent ->
+        val match = acmeBrowserRegex.find(userAgent)
+        if (match != null) {
+            UserAgentInfo(browser = Component("AcmeBrowser", match.groupValues[1]))
+        } else {
+            UserAgentInfo() // no match -- contribute nothing, let other packs decide
+        }
+    },
+    // No applyToGenerate given, so it defaults to `{ null }` -- same as `myPack`
+    // above, this contributes nothing on the generate side.
+)
+```
+
+**Pack order controls priority**, since for each field, the first pack (in
+the order passed) to produce a non-null value wins -- every pack's `detect`
+still runs on every call, but only one pack's result per field survives.
+This applies to any named field, not just `browser`. It matters concretely
+here because most WebKit/Chromium-derived browsers -- not just obscure forks
+-- keep a legacy `Safari/<version>` compatibility token in their UA string,
+which `UserAgentBrowserTypes`' own generic Safari rule matches on its own,
+with nothing else required:
+
+```kotlin
+val userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) " +
+    "AcmeBrowser/3.1 Safari/537.36"
+
+val customFirst = UserAgentParser(acmeBrowserPack, UserAgentBrowserTypes)(userAgent)
+println(customFirst.browser) // Component(name=AcmeBrowser, version=3.1) -- acmeBrowserPack's result won
+
+val builtInFirst = UserAgentParser(UserAgentBrowserTypes, acmeBrowserPack)(userAgent)
+println(builtInFirst.browser) // Component(name=Safari, version=null) -- the built-in
+// pack's generic Safari rule produced a non-null result first, so
+// acmeBrowserPack's result lost even though its own detect() still ran
+```
+
+Put a custom pack **before** the built-in pack it's meant to take priority
+over; put it **after** if you only want it to fill in gaps the built-in pack
+leaves `null`.
+
 `applyToGenerate` receives a fully-populated `UserAgentInfo` and may return a
 complete User-Agent string built from whatever subset of fields your pack
 knows how to render, or `null` to say "this pack has nothing to contribute
