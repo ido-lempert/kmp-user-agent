@@ -434,10 +434,16 @@ val generateUserAgentRules = tasks.register("generateUserAgentRules") {
 // the JVM one, and `mergeAndroidMainJavaResource` (which feeds the published
 // AAR) picks up the Android one. The iOS klib/framework artifact
 // intentionally does not embed either file: embedding text files inside a
-// compiled Kotlin/Native binary isn't standard practice, so iOS consumers
-// instead get both via the published POM's SCM/license metadata pointing
-// back to this source repo (same reasoning applies to the JS target's own
-// Maven publication, distinct from the npm package Story 3.2 covers).
+// compiled Kotlin/Native binary isn't standard practice. For a Maven Central
+// consumer, iOS instead gets both via the published POM's SCM/license
+// metadata pointing back to this source repo (same reasoning applies to the
+// JS target's own Maven publication, distinct from the npm package Story
+// 3.2 covers). For the SPM binaryTarget distribution (Story 5.6,
+// Package.swift at the repo root), consumers get both a different way:
+// `swift package resolve` checks out this whole git repository alongside
+// the binary artifact download, so the root LICENSE and this NOTICE file
+// are present in every SPM consumer's local checkout automatically --
+// confirmed empirically, not assumed.
 // =============================================================================
 
 // Declared as a function (not a top-level `val`) on purpose: a top-level

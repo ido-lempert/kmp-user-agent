@@ -7,8 +7,9 @@ each GitHub Release and resolved via a `Package.swift` manifest at the repo
 root.
 
 Requires **iOS 15+** as your app's deployment target (the compiled
-XCFramework's own real minimum), Xcode with Swift tools version 5.5 or
-newer, and an Apple Silicon Mac for the simulator slice -- there's no
+XCFramework's own real minimum -- `Package.swift` declares only iOS, no
+watchOS/tvOS/macOS/Mac Catalyst), Xcode 13 or newer (Swift tools version
+5.5), and an Apple Silicon Mac for the simulator slice -- there's no
 `ios-x86_64` (Intel simulator) build yet. The build is release-configuration
 and unsymbolicated (no dSYMs bundled), so you won't get source-level
 stepping or fully symbolicated crash traces into the library itself.
@@ -31,29 +32,42 @@ matching GitHub Release has no binary asset to resolve -- and add the
 ### Package.swift (for a Swift package)
 
 ```swift
-dependencies: [
-    .package(url: "https://github.com/ido-lempert/kmp-user-agent.git", from: "0.2.0")
-],
-targets: [
-    .target(
-        name: "YourTarget",
-        dependencies: [.product(name: "Library", package: "kmp-user-agent")]
-    )
-]
+// swift-tools-version:5.5
+import PackageDescription
+
+let package = Package(
+    name: "YourPackage",
+    platforms: [.iOS(.v15)],
+    dependencies: [
+        .package(url: "https://github.com/ido-lempert/kmp-user-agent.git", from: "0.2.0")
+    ],
+    targets: [
+        .target(
+            name: "YourTarget",
+            dependencies: [.product(name: "Library", package: "kmp-user-agent")]
+        )
+    ]
+)
 ```
 
 > `0.2.0` above is a hand-pinned version, not something SPM resolves for you
 > -- when a newer release ships, bump the version requirement above and let
 > Xcode (or `swift package update`) re-resolve; check the
 > [Releases page](https://github.com/ido-lempert/kmp-user-agent/releases)
-> for the latest published version.
+> (and [CHANGELOG.md](https://github.com/ido-lempert/kmp-user-agent/blob/master/CHANGELOG.md)
+> for what changed) for the latest published version.
 
-SPM downloads and links the prebuilt XCFramework directly -- no CocoaPods
-step, no Gradle or JDK install, nothing to build from Kotlin source locally.
+SPM downloads and links the prebuilt XCFramework (both slices) directly --
+no CocoaPods step, no Gradle or JDK install, nothing to build from Kotlin
+source locally, though expect a real multi-megabyte download on a fresh
+resolve or cache miss.
+
 If Xcode ever reports a checksum mismatch for this package, it means the
-cached artifact doesn't match what `Package.swift` expects -- delete
-derived data / run `File → Packages → Reset Package Caches` and try again
-before assuming the release itself is broken.
+cached artifact doesn't match what `Package.swift` expects for that tag --
+delete derived data / run `File → Packages → Reset Package Caches` (or, from
+the command line, delete `~/Library/Caches/org.swift.swiftpm` and any local
+`.build` directory) and re-resolve before assuming the release itself is
+broken.
 
 The imported module is named `Library` (matching the Gradle framework's
 `baseName`, not the package name) -- worth knowing if your own project

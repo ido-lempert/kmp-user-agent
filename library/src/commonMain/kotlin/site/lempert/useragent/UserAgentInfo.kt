@@ -13,11 +13,11 @@ import kotlin.js.JsExport
  *
  * [browser]/[engine]/[os]/[device] are populated by the built-in
  * [UserAgentBrowserTypes]/[UserAgentEngineTypes]/[UserAgentOsTypes]/
- * [UserAgentDeviceTypes] packs (or [UserAgentAllTypes], which covers all
- * four). [bot]/[aiAgent] are reserved for a deferred follow-up story's
- * `UserAgentBotTypes`/`UserAgentAIAgentTypes` packs -- present now so that
- * story doesn't need another breaking data-model change, but always `null`
- * until those packs exist. [custom] is the extension point a custom
+ * [UserAgentDeviceTypes] packs, and [bot]/[aiAgent] by
+ * `UserAgentBotTypes`/`UserAgentAIAgentTypes` (or [UserAgentAllTypes], which
+ * covers all six) -- each stays `null` only when the packs passed to
+ * [UserAgentParser]/[UserAgentGenerator] don't cover that field, or nothing
+ * in the input matched. [custom] is the extension point a custom
  * [UserAgentTypePack] can use to contribute data that doesn't fit any of the
  * named fields above, keyed by whatever id the pack's author chooses.
  *

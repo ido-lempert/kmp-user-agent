@@ -221,3 +221,15 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-5-5-android-usage-guide.md`
   summary: The install snippet doesn't remind readers that most projects already have Maven Central in their default repositories but some may not (`repositories { mavenCentral() }` needed) -- low-probability given Maven Central is the default in virtually all modern Android project templates.
   evidence: Review-surfaced (edge-case-hunter layer). Low-value boilerplate the site doesn't otherwise include elsewhere; not worth the added length for this story's guide.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-6-ios-usage-guide.md`
+  summary: No CI or repo-local automation exercises the XCFramework assembly (`assembleLibraryReleaseXCFramework`) this story wires up -- `./gradlew build` (the repo's only CI gate) never invokes it, so a future regression in the `xcf.add(this)` wiring (e.g. dropping a slice, renaming the framework) could silently ship in a later release with a fully green CI run, undetected until an SPM consumer's build breaks.
+  evidence: Review-surfaced (verification-gap layer), well-demonstrated: confirmed via `./gradlew :library:build --dry-run` that the XCFramework-assembly tasks aren't in the default `build` lifecycle, and grepped both workflow files for zero references. Matches this project's already-accepted "manual release process, no CI automation" pattern for Maven Central/npm, but flagged prominently here since the regression path is concretely demonstrated rather than theoretical -- worth a dedicated CI/pre-release check (inspect the assembled XCFramework's slice directories, not just trust a green build) if this becomes a recurring release rather than a one-off.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-6-ios-usage-guide.md`
+  summary: No documented maintainer process exists for cutting the next SPM release (rebuild the XCFramework, re-zip, recompute checksum, edit `Package.swift`, commit before tagging, then tag/push/release) -- today it's entirely manual and undocumented, discovered ad hoc during this story.
+  evidence: Review-surfaced (blind-hunter layer). Matches the established manual-publish pattern already accepted for Maven Central/npm in this project; worth writing down (e.g. in a CONTRIBUTING note) once a second real release happens, not before.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-5-6-ios-usage-guide.md`
+  summary: The XCFramework has no `iosX64` (Intel simulator) slice -- a pre-existing limitation of `library/build.gradle.kts`'s iOS target list (predates this story), now user-visible for the first time via real SPM distribution rather than being invisible KMP-Gradle-only scope.
+  evidence: Confirmed via `library/build.gradle.kts`; not caused by this story. Now documented as a caveat in `docs-site/guide/ios.md`. Adding `iosX64` would require extending the library's own MVP target list, a separate decision beyond this story's scope.

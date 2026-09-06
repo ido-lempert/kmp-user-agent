@@ -10,8 +10,9 @@ one Kotlin Multiplatform library, behind a single composable API.
 
 See [Core Concepts](/guide/core-concepts) for the shared model and
 pack-composition pattern, then the [Browser & Node.js guide](/guide/js) to
-get started from JavaScript or TypeScript, or the [Android guide](/guide/android)
-to get started from Kotlin.
+get started from JavaScript or TypeScript, the [Android guide](/guide/android)
+to get started from Kotlin, or the [iOS guide](/guide/ios) to get started
+from Swift.
 
 ## Try it live
 
