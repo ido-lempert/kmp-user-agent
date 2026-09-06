@@ -1,16 +1,12 @@
 import { defineConfig } from 'vitepress';
 
-// GitHub Pages serves the deployed build as a project site at
-// https://ido-lempert.github.io/kmp-user-agent/ (not a user/org site at the
-// domain root), so a production build's `base` must match the repo name --
-// the VitePress default `base: '/'` would 404 every asset once deployed.
-// Local `npm run docs:dev` has no such subpath, so it stays at `/`; only
-// `npm run docs:build`'s `command === 'build'` gets the GitHub Pages base.
-export default defineConfig(({ command }) => ({
+// Served from the custom domain https://user-agent.lempert.site/ (repo
+// Settings -> Pages -> Custom domain), which is a domain root, not a project
+// subpath -- so `base` stays VitePress's default `/` in both dev and build.
+export default defineConfig({
   title: 'kmp-user-agent',
   description:
     'Parse and generate User-Agent strings across Android, iOS, JVM, and JS from one Kotlin Multiplatform library.',
-  base: command === 'build' ? '/kmp-user-agent/' : '/',
   cleanUrls: true,
 
   themeConfig: {
@@ -40,4 +36,4 @@ export default defineConfig(({ command }) => ({
       provider: 'local',
     },
   },
-}));
+});
