@@ -7,7 +7,7 @@ each GitHub Release and resolved via a `Package.swift` manifest at the repo
 root.
 
 Requires **iOS 15+** as your app's deployment target (the compiled
-XCFramework's own real minimum), Xcode with Swift tools version 5.3 or
+XCFramework's own real minimum), Xcode with Swift tools version 5.5 or
 newer, and an Apple Silicon Mac for the simulator slice -- there's no
 `ios-x86_64` (Intel simulator) build yet. The build is release-configuration
 and unsymbolicated (no dSYMs bundled), so you won't get source-level

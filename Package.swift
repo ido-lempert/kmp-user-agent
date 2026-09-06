@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.5
 import PackageDescription
 
 // SPM distribution manifest for the Kotlin/Native XCFramework built from
@@ -7,6 +7,11 @@ import PackageDescription
 // where this file is auto-generated, so it is hand-written -- following
 // Kotlin's own documented pattern:
 // https://kotlinlang.org/docs/multiplatform/multiplatform-spm-export.html
+//
+// swift-tools-version is 5.5, not the 5.3 minimum that remote binaryTarget
+// itself requires -- `.iOS(.v15)` below needs PackageDescription 5.5
+// (confirmed by a real compile error: "'v15' is unavailable ... introduced
+// in PackageDescription 5.5" when this was still pinned at 5.3).
 //
 // The binaryTarget points at a GitHub Release asset for tag 0.2.0. The URL
 // is deterministic from the tag name and does not require the release to
