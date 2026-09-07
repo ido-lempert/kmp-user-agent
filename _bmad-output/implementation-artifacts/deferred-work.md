@@ -258,6 +258,30 @@
   summary: Verify (or extend) the consent-banner injection point if a future docs-site page ever opts out of the default VitePress layout via `layout: false` frontmatter, since `ConsentBanner` is currently injected only through `DefaultTheme.Layout`'s `layout-bottom` slot and such a page would never render it.
   evidence: Review-surfaced (edge-case-hunter layer). No page in the site currently sets `layout: false`, so this is latent rather than a live gap today.
 
+- source_spec: `_bmad-output/implementation-artifacts/spec-github-release-publish-workflow.md`
+  summary: Add the npm publish step (and its half of the tag-vs-version consistency check) to the GitHub Actions release workflow, once the Maven Central half exists.
+  evidence: Split at the human's direction (2026-09-07) after the combined spec came out to ~3,200 tokens, roughly double the 1,600-token scope target -- Maven Central and npm are each independently shippable/reviewable publish targets sharing the same tag-triggered entry point, so the split follows the natural fault line already visible in the codebase (separate `mavenPublishing {}`/`npmPublish {}` blocks in `library/build.gradle.kts`, separate spec-3-1/spec-3-2 stories for the original one-time publishes). Do NOT wire the existing `stagePublishJsPackage` Gradle task into this workflow when picked up -- it has known, already-logged bugs (see the deferred-work.md entry beginning "library/build.gradle.kts's stagePublishJsPackage task"); use the org.jetbrains.kotlin.npm-publish plugin's own standard publish task instead (referenced in `library/build.gradle.kts`'s `otp.set(...)` comment as `publishJsPackageToNpmjsRegistry` -- confirm the exact name via `./gradlew :library:tasks --group publishing`). Also note: unattended CI publish requires an npm "Automation"-type token (exempt from OTP/2FA) -- a token tied to interactive 2FA will fail in CI.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-github-release-publish-workflow.md`
+  summary: `release.yml`'s publish job doesn't gate on `ci.yml`'s build/test job succeeding for the same tag -- the two workflows trigger independently, so a tag pushed with failing tests could still reach the Maven Central publish step.
+  evidence: Review-surfaced (blind-hunter layer). Closing this cleanly needs a real design decision (a `workflow_run`-triggered gate, a reusable workflow, or duplicating the test run inside `release.yml`), not a mechanical fix -- left for a follow-up.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-github-release-publish-workflow.md`
+  summary: `release.yml` has no `workflow_dispatch` trigger, so if the publish step fails for a transient reason (network blip, Central Portal outage) after a real tag is already pushed, the only recovery path is deleting and re-pushing the tag.
+  evidence: Review-surfaced (blind-hunter layer). Adding manual re-run needs its own design (what ref/version a dispatch run publishes, since `GITHUB_REF_NAME` wouldn't be a tag on a manual run) -- not a trivial addition to a workflow with live publish access.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-github-release-publish-workflow.md`
+  summary: Consider gating `release.yml`'s publish job behind a GitHub Environment (e.g. `environment: release`) with required reviewers, scoping the five signing/publish secrets to that environment instead of the whole repo.
+  evidence: Review-surfaced (blind-hunter layer). This is real added safety (an approval checkpoint before secrets are used) but requires repo-side configuration (Settings -> Environments) and a decision on who the required reviewers are -- a maintainer action, not something to wire blind.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-github-release-publish-workflow.md`
+  summary: The `v*` tag trigger and the version-check step's `[0-9.]*`-only capture have no supported path for a pre-release tag (e.g. `v0.3.0-beta01`) -- it would just fail the version-check step with a generic "could not extract a version" error rather than being handled explicitly (accepted, rejected with a clear message, or routed differently).
+  evidence: Review-surfaced (blind-hunter layer). Not a live bug (no pre-release version is in use today), but worth an explicit decision whenever pre-release publishing is actually wanted.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-github-release-publish-workflow.md`
+  summary: No idempotency check for re-pushing the same version tag after it was already staged (or fully released) on Maven Central -- the publish step would just fail with Central Portal's own opaque error rather than a clear repo-side message explaining the tag was already published.
+  evidence: Review-surfaced (edge-case-hunter layer). Central Portal itself rejects re-publishing an already-released version, so this is a UX/clarity gap rather than a correctness risk -- worth a friendlier pre-check if it turns out to bite a real release attempt.
+
 - source_spec: none
   summary: Add a React Native usage guide to docs-site, following the same per-platform pattern as the Android/iOS/JVM guides.
   evidence: Split from a combined "docs-site expansion" ask (2026-09-06) covering 8 distinct deliverables; this one carries its own open question -- whether the published `@lempert/user-agent` npm package actually resolves and runs under Metro/Hermes -- which needs verifying before the guide's content (or its viability) can be written, unlike the already-planned JVM guide picked as this round's first goal.

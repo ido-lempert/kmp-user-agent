@@ -1,0 +1,107 @@
+name: Release (Maven Central)
+
+# =============================================================================
+# Publishes the `site.lempert:user-agent` library to Maven Central when a
+# `vX.Y.Z` tag is pushed. Never runs on a normal push or PR (see `ci.yml` for
+# that). npm publishing is a separate, not-yet-built follow-up -- see
+# `_bmad-output/implementation-artifacts/deferred-work.md`.
+#
+# --- Release semantics (verified against com.vanniktech.maven.publish 0.37.0
+#     source, since `library/build.gradle.kts` calls the bare
+#     `publishToMavenCentral()` DSL function with no arguments) ---
+# The DSL's `automaticRelease` parameter defaults to `project.automaticRelease()`,
+# which reads the `mavenCentralAutomaticPublishing` (or legacy
+# `SONATYPE_AUTOMATIC_RELEASE`) Gradle property and falls back to `false` when
+# neither is set -- neither is set anywhere in this repo. With
+# automaticRelease=false, the `publishToMavenCentral` Gradle task (used below)
+# only STAGES the release: it uploads and verifies the deployment but does
+# NOT publish it live. A maintainer must go to
+# https://central.sonatype.com/publishing/deployments and manually click
+# "Publish" on the deployment before it becomes visible to consumers.
+# (The plugin also registers a `publishAndReleaseToMavenCentral` task that
+# ALWAYS auto-releases regardless of this DSL setting -- deliberately not
+# used here, to preserve `library/build.gradle.kts`'s existing configured
+# behavior unchanged, per this workflow's spec.)
+#
+# --- Required GitHub Secrets (Settings -> Secrets and variables -> Actions) ---
+# Signing (read automatically by `signAllPublications()` via
+# `ORG_GRADLE_PROJECT_*` env vars -- never passed as literals):
+#   - ORG_GRADLE_PROJECT_signingInMemoryKey
+#   - ORG_GRADLE_PROJECT_signingInMemoryKeyPassword
+#   - ORG_GRADLE_PROJECT_signingInMemoryKeyId
+# Sonatype Central Portal credentials (read as Gradle properties
+# `mavenCentralUsername`/`mavenCentralPassword` via the same
+# `ORG_GRADLE_PROJECT_*` env-var convention):
+#   - ORG_GRADLE_PROJECT_mavenCentralUsername
+#   - ORG_GRADLE_PROJECT_mavenCentralPassword
+# All five must be added before the first real release tag is pushed.
+# =============================================================================
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: macos-latest
+    # Queue same-tag runs instead of letting them race the same Maven
+    # Central deployment; deliberately NOT cancel-in-progress (default
+    # false) -- cancelling mid-upload could leave a corrupt/partial
+    # deployment staged on Central Portal.
+    concurrency:
+      group: release-${{ github.ref_name }}
+    # Fail fast on a hang talking to Central Portal instead of tying up the
+    # runner for GitHub's default 6-hour job limit.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: gradle/actions/wrapper-validation@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
+
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
+
+      - name: Verify tag version matches library/build.gradle.kts coordinates
+        run: ./scripts/verify-release-version.sh "${GITHUB_REF_NAME}" library/build.gradle.kts
+
+      - name: Verify required Maven Central secrets are present
+        env:
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyId }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
+        run: |
+          set -uo pipefail
+
+          missing=()
+          [ -z "${ORG_GRADLE_PROJECT_signingInMemoryKey}" ] && missing+=("ORG_GRADLE_PROJECT_signingInMemoryKey")
+          [ -z "${ORG_GRADLE_PROJECT_signingInMemoryKeyPassword}" ] && missing+=("ORG_GRADLE_PROJECT_signingInMemoryKeyPassword")
+          [ -z "${ORG_GRADLE_PROJECT_signingInMemoryKeyId}" ] && missing+=("ORG_GRADLE_PROJECT_signingInMemoryKeyId")
+          [ -z "${ORG_GRADLE_PROJECT_mavenCentralUsername}" ] && missing+=("ORG_GRADLE_PROJECT_mavenCentralUsername")
+          [ -z "${ORG_GRADLE_PROJECT_mavenCentralPassword}" ] && missing+=("ORG_GRADLE_PROJECT_mavenCentralPassword")
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            for name in "${missing[@]}"; do
+              echo "::error::Required secret '${name}' is not set (or is empty). Add it under Settings -> Secrets and variables -> Actions before releasing."
+            done
+            exit 1
+          fi
+
+          echo "All required Maven Central secrets are present."
+
+      # Stages the release to Maven Central (does not auto-release -- see
+      # header comment above). Signing/credentials come from GitHub Secrets
+      # via the ORG_GRADLE_PROJECT_* Gradle property convention; nothing is
+      # hardcoded here.
+      - name: Publish to Maven Central
+        env:
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyId }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
+        run: ./gradlew :library:publishToMavenCentral

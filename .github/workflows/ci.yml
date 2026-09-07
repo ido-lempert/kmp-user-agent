@@ -24,3 +24,10 @@ jobs:
       # targets and compiles the jvmApp/androidApp sample apps.
       - name: Build library, samples, and run tests across all four targets
         run: ./gradlew build
+
+      # Exercises scripts/verify-release-version.sh (release.yml's version
+      # check, extracted so it's covered here) against fixture
+      # build.gradle.kts files, so a regression is caught on every push/PR
+      # instead of only when a real vX.Y.Z release tag is pushed.
+      - name: Verify release version-check script (fixture tests)
+        run: bash scripts/verify-release-version.test.sh
