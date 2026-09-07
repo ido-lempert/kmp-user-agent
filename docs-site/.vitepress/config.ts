@@ -63,7 +63,13 @@ export default defineConfig({
       { text: 'Android', link: '/guide/android' },
       { text: 'iOS', link: '/guide/ios' },
       { text: 'JVM', link: '/guide/jvm' },
-      { text: 'License', link: '/license' },
+      {
+        text: 'Legal',
+        items: [
+          { text: 'License', link: '/license' },
+          { text: 'Legal disclaimers', link: '/legal' },
+        ],
+      },
     ],
 
     sidebar: [
@@ -84,7 +90,10 @@ export default defineConfig({
       },
       {
         text: 'Legal',
-        items: [{ text: 'License', link: '/license' }],
+        items: [
+          { text: 'License', link: '/license' },
+          { text: 'Legal disclaimers', link: '/legal' },
+        ],
       },
     ],
 

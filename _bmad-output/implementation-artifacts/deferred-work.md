@@ -282,6 +282,18 @@
   summary: No idempotency check for re-pushing the same version tag after it was already staged (or fully released) on Maven Central -- the publish step would just fail with Central Portal's own opaque error rather than a clear repo-side message explaining the tag was already published.
   evidence: Review-surfaced (edge-case-hunter layer). Central Portal itself rejects re-publishing an already-released version, so this is a UX/clarity gap rather than a correctness risk -- worth a friendlier pre-check if it turns out to bite a real release attempt.
 
+- source_spec: `_bmad-output/implementation-artifacts/spec-legal-disclaimers-page.md`
+  summary: `docs-site/legal.md`'s privacy section doesn't state data retention/erasure guidance for already-collected GA4 analytics data (how long Google retains it, what happens if a visitor withdraws consent after previously accepting) -- specific retention periods depend on the actual GA4 property's admin-panel settings, which this session never configured or inspected.
+  evidence: Review-surfaced (blind-hunter layer). Asserting a specific retention period without verifying the real GA4 property's configuration would risk stating something false; the maintainer should check Google Analytics' own Admin > Data Settings > Data Retention for this property and add an accurate statement once known.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-legal-disclaimers-page.md`
+  summary: `docs-site/legal.md`'s privacy section describes the consent-gating mechanism but not GA4's actual cookie-level details (cookie names like `_ga`/`_ga_<container-id>`, their duration, first-party status) once a visitor accepts.
+  evidence: Review-surfaced (blind-hunter layer). This session never ran a real browser against the live, deployed GA4 property with a real measurement ID actively collecting, so the exact cookies GA4 sets couldn't be verified firsthand rather than assumed from generic GA4 documentation.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-legal-disclaimers-page.md`
+  summary: No automated check ties `legal.md`'s specific prose claims (e.g. "all four signals default denied," "Advanced Consent Mode," the localStorage-based persistence description) to the actual consent mechanism's behavior -- a future change to `consentDecision.ts` or `config.ts`'s head script (e.g. switching to Consent Mode "Basic," changing the storage key) could leave the prose factually wrong while every existing CI check (build, the two verify-*.mjs scripts) stays green.
+  evidence: Review-surfaced (verification-gap layer, "Other findings"). Harder to close than the link/anchor-validation gaps patched in this same review round -- asserting text-content correctness via automated test is unusual and would need careful scoping (e.g. asserting specific keywords/values appear in both places) to avoid being either too weak or too brittle; left for a follow-up rather than rushed into this round's patches.
+
 - source_spec: none
   summary: Add a React Native usage guide to docs-site, following the same per-platform pattern as the Android/iOS/JVM guides.
   evidence: Split from a combined "docs-site expansion" ask (2026-09-06) covering 8 distinct deliverables; this one carries its own open question -- whether the published `@lempert/user-agent` npm package actually resolves and runs under Metro/Hermes -- which needs verifying before the guide's content (or its viability) can be written, unlike the already-planned JVM guide picked as this round's first goal.

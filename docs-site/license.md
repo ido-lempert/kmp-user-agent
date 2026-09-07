@@ -86,7 +86,7 @@ npm package's own runtime dependency surface. Both audits reached the same
 finding: every dependency is MIT- or Apache-2.0-licensed -- no copyleft
 (GPL/LGPL/AGPL) dependency is present anywhere in either scope.
 
-## Third-party attribution: docs-site logos (Simple Icons, CC0-1.0)
+## Third-party attribution: docs-site logos (Simple Icons, CC0-1.0) {#third-party-attribution-docs-site-logos-simple-icons-cc0-1-0}
 
 `SPDX-License-Identifier: CC0-1.0` (for the icon artwork only -- see below)
 
@@ -111,6 +111,9 @@ license field, and the [npm package page](https://www.npmjs.com/package/@lempert
 license field, both declare `MIT`.
 
 ## Next steps
+
+For trademark/nominative-use, accessibility, and privacy/analytics
+disclosures, see [Legal disclaimers](/legal).
 
 For how to actually add and use the library, see the platform guide for
 your language: [Browser & Node.js (JS)](./guide/js),

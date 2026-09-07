@@ -121,7 +121,9 @@ function reject(): void {
   >
     <p class="consent-banner__text">
       This site uses Google Analytics to understand how visitors use the
-      docs. Analytics is off by default until you accept.
+      docs. Analytics is off by default until you accept. See the
+      <a href="/legal#privacy">privacy &amp; analytics section</a> of our legal
+      disclaimers for details.
     </p>
     <div class="consent-banner__actions">
       <button type="button" class="consent-banner__button consent-banner__button--reject" @click="reject">

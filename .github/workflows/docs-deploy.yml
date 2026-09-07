@@ -151,6 +151,20 @@ jobs:
         working-directory: docs-site
         run: node scripts/verify-consent-decision.mjs
 
+      # VitePress's own dead-link checker strips URL fragments before
+      # checking a link, so a broken in-page anchor (e.g. a heading's
+      # wording edited without updating a matching `{#id}` override, or a
+      # stale slug baked into a cross-page link) still produces a clean,
+      # passing build -- see spec-legal-disclaimers-page.md finding #5.
+      # This script re-derives every heading's real id (explicit `{#id}`
+      # or VitePress's own auto-generated slug) and every internal link's
+      # target anchor from the actual markdown source, plus every
+      # nav/sidebar `link` in config.ts, and fails if any of them don't
+      # resolve.
+      - name: Verify internal links and anchors
+        working-directory: docs-site
+        run: node scripts/verify-links-and-anchors.mjs
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
