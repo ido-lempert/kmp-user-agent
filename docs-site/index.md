@@ -1,10 +1,3 @@
----
-head:
-  - - link
-    - rel: preconnect
-      href: https://cdn.jsdelivr.net
----
-
 <script setup>
 import ParseDemo from './src/demo/ParseDemo.vue';
 import GenerateDemo from './src/demo/GenerateDemo.vue';
@@ -51,6 +44,38 @@ to [Get started](#get-started).
   demos on this page; the same logic ships to Maven Central for
   Android/iOS/JVM. See [License](/license) for the full license and
   third-party attribution.
+
+## Supported platforms
+
+The same shared parsing/generation logic, with a native binding per
+platform -- pick your guide:
+
+<div role="list" aria-label="Supported platforms" style="display:flex;flex-wrap:wrap;gap:1rem;margin:1.5rem 0 2rem;">
+<span role="listitem"><a href="/guide/js" style="display:flex;align-items:center;gap:0.9rem;width:240px;max-width:100%;padding:1rem;border-radius:12px;border:1px solid var(--vp-c-divider);background:var(--vp-c-bg-soft);text-decoration:none;">
+<span style="display:inline-flex;align-items:center;justify-content:center;width:3rem;height:3rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);flex-shrink:0;" title="JavaScript"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/javascript.svg" alt="JavaScript" width="28" height="28" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span><strong style="display:block;color:var(--vp-c-text-1);font-size:0.95rem;">Browser & Node.js (JS)</strong><span style="display:block;font-size:0.8rem;color:var(--vp-c-text-2);margin-top:0.15rem;">Parse and generate UA strings in the browser or Node.js.</span></span>
+</a></span>
+<span role="listitem"><a href="/guide/react-native" style="display:flex;align-items:center;gap:0.9rem;width:240px;max-width:100%;padding:1rem;border-radius:12px;border:1px solid var(--vp-c-divider);background:var(--vp-c-bg-soft);text-decoration:none;">
+<span style="display:inline-flex;align-items:center;justify-content:center;width:3rem;height:3rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);flex-shrink:0;" title="React (React Native)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/react.svg" alt="React (React Native)" width="28" height="28" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span><strong style="display:block;color:var(--vp-c-text-1);font-size:0.95rem;">React Native</strong><span style="display:block;font-size:0.8rem;color:var(--vp-c-text-2);margin-top:0.15rem;">The same JS build, verified under Metro and Hermes.</span></span>
+</a></span>
+<span role="listitem"><a href="/guide/android" style="display:flex;align-items:center;gap:0.9rem;width:240px;max-width:100%;padding:1rem;border-radius:12px;border:1px solid var(--vp-c-divider);background:var(--vp-c-bg-soft);text-decoration:none;">
+<span style="display:inline-flex;align-items:center;justify-content:center;width:3rem;height:3rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);flex-shrink:0;" title="Android"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/android.svg" alt="Android" width="28" height="28" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span><strong style="display:block;color:var(--vp-c-text-1);font-size:0.95rem;">Android</strong><span style="display:block;font-size:0.8rem;color:var(--vp-c-text-2);margin-top:0.15rem;">Kotlin bindings for the same shared detection logic.</span></span>
+</a></span>
+<span role="listitem"><a href="/guide/ios" style="display:flex;align-items:center;gap:0.9rem;width:240px;max-width:100%;padding:1rem;border-radius:12px;border:1px solid var(--vp-c-divider);background:var(--vp-c-bg-soft);text-decoration:none;">
+<span style="display:inline-flex;align-items:center;justify-content:center;width:3rem;height:3rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);flex-shrink:0;" title="Apple (iOS)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/apple.svg" alt="Apple (iOS)" width="28" height="28" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span><strong style="display:block;color:var(--vp-c-text-1);font-size:0.95rem;">iOS</strong><span style="display:block;font-size:0.8rem;color:var(--vp-c-text-2);margin-top:0.15rem;">Swift bindings via the published XCFramework.</span></span>
+</a></span>
+<span role="listitem"><a href="/guide/jvm" style="display:flex;align-items:center;gap:0.9rem;width:240px;max-width:100%;padding:1rem;border-radius:12px;border:1px solid var(--vp-c-divider);background:var(--vp-c-bg-soft);text-decoration:none;">
+<span style="display:inline-flex;align-items:center;justify-content:center;width:3rem;height:3rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);flex-shrink:0;" title="Kotlin (JVM)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/kotlin.svg" alt="Kotlin (JVM)" width="28" height="28" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span><strong style="display:block;color:var(--vp-c-text-1);font-size:0.95rem;">JVM</strong><span style="display:block;font-size:0.8rem;color:var(--vp-c-text-2);margin-top:0.15rem;">Kotlin bindings for server or desktop JVM apps.</span></span>
+</a></span>
+</div>
+
+Logos via [Simple Icons](https://simpleicons.org) (CC0-1.0, see
+[License](/license) for the full attribution) -- identification only, not
+an endorsement by, or partnership with, any company shown.
 
 ## A sample of what it detects
 

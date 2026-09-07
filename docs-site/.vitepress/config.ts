@@ -21,8 +21,14 @@ const GA_MEASUREMENT_ID = 'G-1TGW366KHQ';
 // All four signals default to 'denied'; ConsentBanner.vue (theme/index.ts,
 // layout-bottom slot) is what calls `gtag('consent', 'update', ...)` once
 // the visitor makes a choice.
-const head: HeadConfig[] =
-  process.env.NODE_ENV === 'production'
+const head: HeadConfig[] = [
+  // Sidebar guide icons (see `sidebarIcon` below) are jsDelivr-hosted Simple
+  // Icons and render on every page site-wide, so this preconnect hint lives
+  // here rather than in a single page's frontmatter `head` (it used to be
+  // homepage-only, back when the homepage's detection showcase was the only
+  // page using this CDN).
+  ['link', { rel: 'preconnect', href: 'https://cdn.jsdelivr.net' }],
+  ...(process.env.NODE_ENV === 'production'
     ? [
         [
           'script',
@@ -44,7 +50,20 @@ gtag('consent', 'default', {
 gtag('config', '${GA_MEASUREMENT_ID}');`,
         ],
       ]
-    : [];
+    : ([] as HeadConfig[])),
+];
+
+// Version-pinned Simple Icons (CC0-1.0), same CDN + pin already used on the
+// homepage's "A sample of what it detects" showcase -- no icon files
+// vendored into this repo. Produces an inline <img>, wrapped in a small
+// fixed-light chip (matches the homepage's dark-mode legibility fix: these
+// icons default to solid black fills, which would vanish against a dark
+// sidebar background without a fixed light backdrop) so it renders via
+// VPSidebarItem.vue's `v-html="item.text"` with zero custom Vue component
+// and zero change to the `link`-based active-page-highlighting logic.
+function sidebarIcon(slug: string, label: string): string {
+  return `<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;background:#f6f6f7;border:1px solid var(--vp-c-divider);margin-right:6px;vertical-align:-5px;" title="${label}"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/${slug}.svg" alt="${label}" width="12" height="12" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>`;
+}
 
 export default defineConfig({
   title: 'kmp-user-agent',
@@ -77,11 +96,14 @@ export default defineConfig({
         text: 'Guide',
         items: [
           { text: 'Core Concepts', link: '/guide/core-concepts' },
-          { text: 'Browser & Node.js (JS)', link: '/guide/js' },
-          { text: 'React Native', link: '/guide/react-native' },
-          { text: 'Android', link: '/guide/android' },
-          { text: 'iOS', link: '/guide/ios' },
-          { text: 'JVM', link: '/guide/jvm' },
+          { text: sidebarIcon('javascript', 'JavaScript') + 'Browser & Node.js (JS)', link: '/guide/js' },
+          {
+            text: sidebarIcon('react', 'React (React Native)') + 'React Native',
+            link: '/guide/react-native',
+          },
+          { text: sidebarIcon('android', 'Android') + 'Android', link: '/guide/android' },
+          { text: sidebarIcon('apple', 'Apple (iOS)') + 'iOS', link: '/guide/ios' },
+          { text: sidebarIcon('kotlin', 'Kotlin (JVM)') + 'JVM', link: '/guide/jvm' },
         ],
       },
       {

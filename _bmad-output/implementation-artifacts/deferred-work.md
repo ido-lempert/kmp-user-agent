@@ -294,6 +294,30 @@
   summary: No automated check ties `legal.md`'s specific prose claims (e.g. "all four signals default denied," "Advanced Consent Mode," the localStorage-based persistence description) to the actual consent mechanism's behavior -- a future change to `consentDecision.ts` or `config.ts`'s head script (e.g. switching to Consent Mode "Basic," changing the storage key) could leave the prose factually wrong while every existing CI check (build, the two verify-*.mjs scripts) stays green.
   evidence: Review-surfaced (verification-gap layer, "Other findings"). Harder to close than the link/anchor-validation gaps patched in this same review round -- asserting text-content correctness via automated test is unusual and would need careful scoping (e.g. asserting specific keywords/values appear in both places) to avoid being either too weak or too brittle; left for a follow-up rather than rushed into this round's patches.
 
+- source_spec: `_bmad-output/implementation-artifacts/spec-platform-logos.md`
+  summary: The "React Native" homepage card and sidebar entry use Simple Icons' `react` (React) logo, since Simple Icons has no distinct "React Native" mark -- this sits a little oddly next to the site's own repeated messaging that "React Native isn't a fifth target here, it's the same JS build."
+  evidence: Review-surfaced (blind-hunter layer). React Native's own official branding does use the same atom logo, so this is a reasonable real-world choice given the icon-set constraint, not a factual error -- worth reconsidering only if a distinct RN mark becomes available or the visual confusion is reported as a real point of reader confusion.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-platform-logos.md`
+  summary: Three near-identically-worded "not an endorsement/partnership" trademark disclaimers now exist independently on the homepage (the new Supported-platforms section, the pre-existing detection-showcase section) and on `license.md`, rather than one canonical statement the others point to.
+  evidence: Review-surfaced (blind-hunter layer). Cosmetic consistency nit, not a factual or legal problem -- each copy is independently accurate.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-platform-logos.md`
+  summary: `license.md`'s "Next steps" paragraph lists platform guides but omits React Native (pre-existing gap, not introduced by this session's work -- the React Native guide itself predates this change).
+  evidence: Review-surfaced (blind-hunter layer). Pre-existing issue surfaced incidentally by this review, not caused by the platform-logos change itself.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-platform-logos.md`
+  summary: The new homepage cards' redundant `title`/`alt` text (announcing the same platform name twice to screen readers) and the inline-style duplication across every card/sidebar-icon call site (instead of a shared CSS class) both match a pattern already established and twice-reviewed on this same page's pre-existing detection-showcase section -- fixing only the new additions would create inconsistency with the rest of the page.
+  evidence: Review-surfaced (edge-case-hunter and blind-hunter layers). Worth addressing site-wide in one pass (a shared CSS class, and reconsidering whether `title`+`alt` should both carry the same text) rather than partially in just this round's new additions.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-platform-logos.md`
+  summary: Sidebar icon vertical alignment relies on a hardcoded `vertical-align:-5px` verified only in this session's desktop-viewport browser check -- not confirmed across the mobile sidebar drawer's different layout/font-size context.
+  evidence: Review-surfaced (blind-hunter layer). This session's real-browser verification (via claude-in-chrome) confirmed correct rendering and active-page highlighting at desktop width; a narrow-viewport/mobile-drawer pass was not performed.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-platform-logos.md`
+  summary: No hover/focus-visible styling on the new homepage platform cards beyond the browser's default outline -- no visual affordance that they're interactive beyond the cursor changing.
+  evidence: Review-surfaced (blind-hunter layer). Minor UX polish, not a correctness issue.
+
 - source_spec: none
   summary: Add a React Native usage guide to docs-site, following the same per-platform pattern as the Android/iOS/JVM guides.
   evidence: Split from a combined "docs-site expansion" ask (2026-09-06) covering 8 distinct deliverables; this one carries its own open question -- whether the published `@lempert/user-agent` npm package actually resolves and runs under Metro/Hermes -- which needs verifying before the guide's content (or its viability) can be written, unlike the already-planned JVM guide picked as this round's first goal.

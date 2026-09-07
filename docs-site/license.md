@@ -90,9 +90,12 @@ finding: every dependency is MIT- or Apache-2.0-licensed -- no copyleft
 
 `SPDX-License-Identifier: CC0-1.0` (for the icon artwork only -- see below)
 
-The homepage's ["A sample of what it detects"](/#a-sample-of-what-it-detects)
-section references brand logo icons from [Simple Icons](https://simpleicons.org),
-loaded live from a version-pinned CDN URL (`cdn.jsdelivr.net`) -- no icon
+Brand logo icons from [Simple Icons](https://simpleicons.org) appear in
+three places on this site: the homepage's
+["A sample of what it detects"](/#a-sample-of-what-it-detects) section, the
+homepage's ["Supported platforms"](/#supported-platforms) cards, and the
+Guide sidebar's per-platform entries (shown on every guide page). All of
+them load live from a version-pinned CDN URL (`cdn.jsdelivr.net`) -- no icon
 files are vendored into this repository. Simple Icons itself is released
 under CC0-1.0, but as its own
 [disclaimer](https://github.com/simple-icons/simple-icons/blob/develop/DISCLAIMER.md)

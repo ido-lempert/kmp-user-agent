@@ -15,16 +15,34 @@
 // fragments before checking, so a broken anchor still produces a clean,
 // passing build. Same risk shape for `config.ts`'s `nav`/`sidebar` arrays:
 // a typo'd or stale `link` value points at a page that doesn't exist, and
-// nothing in the normal build catches it. This script closes both gaps by
-// checking the two things VitePress itself does not:
+// nothing in the normal build catches it. Same risk shape again for the
+// raw `<a href="...">` cards and `sidebarIcon(...)`-embedded Simple Icons
+// CDN `<img>` URLs added by spec-platform-logos.md -- VitePress's dead-link
+// checker only understands markdown link syntax, never raw HTML `href`
+// attributes or image `src` URLs, so those fail only visually, in a
+// browser, never in CI. This script closes all of these gaps by checking
+// what VitePress itself does not:
 //   (a) every internal `[text](/path#anchor)` (or same-page `[text](#anchor)`)
 //       link's anchor resolves to a real heading id -- explicit `{#id}` or
 //       VitePress's own auto-generated slug -- on its target page.
+//   (a2) every raw HTML `href="/path#anchor"` (or `href="#anchor"`)
+//        attribute inside a `.md` file resolves the same way as (a) --
+//        catches broken links that use raw `<a href="...">` markup instead
+//        of markdown `[text](path)` syntax.
 //   (b) every `nav`/`sidebar` `link` value in `config.ts` resolves to an
 //       actual page file.
+//   (c) every Guide sidebar entry's embedded icon slug matches the platform
+//       its `link` points to -- catches a copy-paste error assigning the
+//       wrong icon to the right link (link-only checks like (b) wouldn't).
+//   (d) every Simple Icons CDN URL referenced in `config.ts` or `index.md`
+//       (sidebar icons, homepage cards, and the pre-existing detection
+//       showcase) actually resolves with a live HTTP request -- catches a
+//       bad slug or a future Simple Icons rename, which otherwise fails
+//       only visually via the `onerror` hide-on-fail fallback.
 //
 // Run directly: `node docs-site/scripts/verify-links-and-anchors.mjs`
-// Exits non-zero if any assertion fails.
+// Exits non-zero if any assertion fails. (d) makes live network requests,
+// so this script needs outbound network access to fully pass.
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -118,6 +136,24 @@ const HEADING_RE = /^#{1,6}\s+(.+?)\s*$/;
 const EXPLICIT_ID_RE = /\s*\{#([A-Za-z0-9_-]+)\}\s*$/;
 const INLINE_CODE_RE = /`([^`]*)`/g;
 
+// Blanks out fenced code block bodies (keeping line count/offsets stable)
+// so raw-HTML/heading scans below never mis-detect example code (e.g. a
+// ```html snippet containing `href="..."`) as real page content.
+function stripFencedCodeBlocks(content) {
+  const lines = content.split('\n');
+  let inFence = false;
+  const out = [];
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence;
+      out.push('');
+      continue;
+    }
+    out.push(inFence ? '' : line);
+  }
+  return out.join('\n');
+}
+
 function headingIdsForFile(absFile) {
   const content = readFileSync(absFile, 'utf8');
   // Fenced code blocks can contain lines starting with "#" (e.g. shell
@@ -206,6 +242,43 @@ for (const file of markdownFiles) {
   }
 }
 
+// --- (a2) Raw HTML `href="..."` attributes inside `.md` files (spec:
+// spec-platform-logos.md finding #1). The homepage's "Supported platforms"
+// cards use raw `<a href="/guide/...">` tags rather than markdown
+// `[text](path)` syntax -- LINK_RE above only matches markdown link syntax,
+// so it never sees these. Reuses the exact same `routeToFile`/heading-id
+// resolution as (a); only the source syntax being scanned differs. Only
+// internal path/anchor hrefs (`/...` or `#...`) are checked -- external
+// URLs (`http(s)://`, `mailto:`, `tel:`, protocol-relative `//...`) are out
+// of scope, same as (a). ---
+
+const HREF_RE = /href="([^"]*)"/g;
+
+for (const file of markdownFiles) {
+  const route = fileToRoute(file);
+  const content = stripFencedCodeBlocks(readFileSync(file, 'utf8'));
+  let match;
+  HREF_RE.lastIndex = 0;
+  while ((match = HREF_RE.exec(content))) {
+    const href = match[1];
+    if (!href) continue;
+    if (/^([a-z][a-z0-9+.-]*:)?\/\//i.test(href)) continue; // external / protocol-relative
+    if (/^(mailto|tel):/i.test(href)) continue;
+    if (!href.startsWith('/') && !href.startsWith('#')) continue; // not an internal page/anchor ref this check covers
+    const [hrefPath, hrefAnchor] = href.split('#');
+    const targetRoute = hrefPath || route; // empty path -> same-page anchor
+    const targetFile = routeToFile(targetRoute);
+    const targetRouteResolved = fileToRoute(targetFile);
+    const exists = existsSync(targetFile);
+    const label = `${path.relative(DOCS_ROOT, file)}: href="${href}" -> ${targetRouteResolved}`;
+    check(`${label} (target page exists)`, exists);
+    if (exists && hrefAnchor) {
+      const ids = headingIdsByRoute.get(targetRouteResolved);
+      check(`${label}#${hrefAnchor} anchor resolves to a real heading`, !!ids && ids.has(hrefAnchor));
+    }
+  }
+}
+
 // --- (b) Every nav/sidebar `link` in config.ts resolves to an existing
 // page file. Imported directly (the same module a real `vitepress build`
 // loads) rather than re-parsed by hand, so this check tracks the config's
@@ -246,6 +319,88 @@ for (const [source, links] of [
       check(`config.ts themeConfig.${source} link "${link}" anchor resolves to a real heading`, !!ids && ids.has(anchor));
     }
   }
+}
+
+// --- (c) Each Guide sidebar entry's icon slug matches the platform its
+// `link` points to (spec: spec-platform-logos.md finding #3). Nothing else
+// catches a copy-paste error that assigns the wrong icon to the right
+// link (e.g. Android's sidebar item getting Apple's icon while `link` still
+// correctly points at `/guide/android`) -- every other check here only
+// validates that `link` resolves to a real page, which such a mistake would
+// still pass. Checked against the live `sidebarIcon(slug, ...)` call
+// embedded in each item's `text` in the actually-imported config module. ---
+
+const EXPECTED_SIDEBAR_ICON_SLUG = {
+  '/guide/js': 'javascript',
+  '/guide/react-native': 'react',
+  '/guide/android': 'android',
+  '/guide/ios': 'apple',
+  '/guide/jvm': 'kotlin',
+};
+
+const guideGroup = sidebarGroups.find((group) => group && group.text === 'Guide');
+check('config.ts themeConfig.sidebar has a "Guide" group', !!guideGroup);
+
+if (guideGroup) {
+  for (const [link, expectedSlug] of Object.entries(EXPECTED_SIDEBAR_ICON_SLUG)) {
+    const item = (guideGroup.items ?? []).find((it) => it && it.link === link);
+    check(`config.ts sidebar Guide group has an item for "${link}"`, !!item);
+    if (!item) continue;
+    const iconMatch = /\/icons\/([a-z0-9-]+)\.svg/.exec(item.text ?? '');
+    const actualSlug = iconMatch ? iconMatch[1] : null;
+    check(
+      `config.ts sidebar Guide item "${link}" uses icon slug "${expectedSlug}" (found ${actualSlug ? `"${actualSlug}"` : 'none'})`,
+      actualSlug === expectedSlug,
+    );
+  }
+}
+
+// --- (d) Every Simple Icons CDN URL referenced in config.ts or index.md
+// actually resolves (spec: spec-platform-logos.md finding #4). A bad slug
+// or a future Simple Icons rename currently fails only visually -- the
+// `onerror` handler hiding the broken icon is a tacit admission of this --
+// invisible to every check above, which only ever look at `href`/`link`
+// navigation targets, never at image asset URLs. Written generically (scans
+// file content for the URL shape, not any specific list of slugs) so it
+// naturally also covers the pre-existing "A sample of what it detects"
+// icon rows, not just the sidebar/homepage-card icons added in this
+// session. ---
+
+const SIMPLE_ICONS_URL_RE = /https:\/\/cdn\.jsdelivr\.net\/npm\/simple-icons@[^/\s"'`]+\/icons\/[a-z0-9-]+\.svg/g;
+
+function findSimpleIconsUrls(content) {
+  const urls = new Set();
+  let m;
+  SIMPLE_ICONS_URL_RE.lastIndex = 0;
+  while ((m = SIMPLE_ICONS_URL_RE.exec(content))) urls.add(m[0]);
+  return urls;
+}
+
+const cdnUrlSourceFiles = [path.join(DOCS_ROOT, '.vitepress', 'config.ts'), path.join(DOCS_ROOT, 'index.md')];
+
+const simpleIconsUrls = new Set();
+for (const file of cdnUrlSourceFiles) {
+  for (const url of findSimpleIconsUrls(readFileSync(file, 'utf8'))) simpleIconsUrls.add(url);
+}
+
+check('found at least one Simple Icons CDN URL to verify', simpleIconsUrls.size > 0);
+
+async function urlResolves(url) {
+  try {
+    let res = await fetch(url, { method: 'HEAD' });
+    if (res.status === 405 || res.status === 501) {
+      // Some CDN edges don't support HEAD -- fall back to a real GET.
+      res = await fetch(url, { method: 'GET' });
+    }
+    return { ok: res.ok, status: res.status };
+  } catch (err) {
+    return { ok: false, status: `network error: ${err.message}` };
+  }
+}
+
+const cdnResults = await Promise.all([...simpleIconsUrls].map(async (url) => ({ url, ...(await urlResolves(url)) })));
+for (const { url, ok, status } of cdnResults) {
+  check(`Simple Icons CDN URL resolves (${status}): ${url}`, ok);
 }
 
 console.log('');
