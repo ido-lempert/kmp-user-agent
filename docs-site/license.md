@@ -86,6 +86,22 @@ npm package's own runtime dependency surface. Both audits reached the same
 finding: every dependency is MIT- or Apache-2.0-licensed -- no copyleft
 (GPL/LGPL/AGPL) dependency is present anywhere in either scope.
 
+## Third-party attribution: docs-site logos (Simple Icons, CC0-1.0)
+
+`SPDX-License-Identifier: CC0-1.0` (for the icon artwork only -- see below)
+
+The homepage's ["A sample of what it detects"](/#a-sample-of-what-it-detects)
+section references brand logo icons from [Simple Icons](https://simpleicons.org),
+loaded live from a version-pinned CDN URL (`cdn.jsdelivr.net`) -- no icon
+files are vendored into this repository. Simple Icons itself is released
+under CC0-1.0, but as its own
+[disclaimer](https://github.com/simple-icons/simple-icons/blob/develop/DISCLAIMER.md)
+states, that doesn't extend to the brand marks the icons depict: each logo
+remains the trademark of the company it represents. Showing a company's
+logo there identifies which company's browser/bot/AI-agent crawler a
+detected User-Agent string matches -- it is not an endorsement by, or
+partnership with, that company.
+
 ## Independently verifiable
 
 The license metadata above isn't only asserted by this repository -- it's

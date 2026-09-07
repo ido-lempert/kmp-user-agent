@@ -1,3 +1,10 @@
+---
+head:
+  - - link
+    - rel: preconnect
+      href: https://cdn.jsdelivr.net
+---
+
 <script setup>
 import ParseDemo from './src/demo/ParseDemo.vue';
 import GenerateDemo from './src/demo/GenerateDemo.vue';
@@ -41,6 +48,67 @@ to [Get started](#get-started).
   demos on this page; the same logic ships to Maven Central for
   Android/iOS/JVM. See [License](/license) for the full license and
   third-party attribution.
+
+## A sample of what it detects
+
+A few of the real browsers, operating systems, bots, and AI agents the
+library recognizes by name -- see the [Type Reference](/reference) for the
+complete list. Icons are identification only (see the attribution note at
+the end), not an endorsement by, or partnership with, any company shown.
+
+**Browsers and operating systems** -- live in the published `0.2.0` package
+today:
+
+<div role="list" aria-label="Browsers and operating systems currently detected" style="display:flex;flex-wrap:wrap;gap:0.6rem;margin:1rem 0 1.5rem;">
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Google Chrome"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/googlechrome.svg" alt="Google Chrome" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Firefox"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/firefox.svg" alt="Firefox" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Safari"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/safari.svg" alt="Safari" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Opera"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/opera.svg" alt="Opera" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Brave"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/brave.svg" alt="Brave" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="DuckDuckGo"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/duckduckgo.svg" alt="DuckDuckGo" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Android"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/android.svg" alt="Android" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Apple (macOS/iOS)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/apple.svg" alt="Apple (macOS/iOS)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Linux"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/linux.svg" alt="Linux" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="KaiOS"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/kaios.svg" alt="KaiOS" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="FreeBSD"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/freebsd.svg" alt="FreeBSD" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+</div>
+
+Windows and Microsoft Edge have no logos here -- notably,
+[Simple Icons](https://simpleicons.org) (the CC0-licensed icon set these
+come from) doesn't carry either mark, despite both being extremely common.
+
+**Bots** -- exist in the library's source since an unreleased `0.3.0`, not
+in the published `0.2.0` package this site installs:
+
+<div role="list" aria-label="A sample of bot operators the library detects by name" style="display:flex;flex-wrap:wrap;gap:0.6rem;margin:1rem 0 1.5rem;">
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Googlebot (Google)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/google.svg" alt="Googlebot (Google)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Baiduspider (Baidu)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/baidu.svg" alt="Baiduspider (Baidu)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Bytespider (ByteDance)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/bytedance.svg" alt="Bytespider (ByteDance)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="facebookexternalhit (Meta)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/meta.svg" alt="facebookexternalhit (Meta)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Discordbot (Discord)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/discord.svg" alt="Discordbot (Discord)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="LinkedInBot (LinkedIn)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/linkedin.svg" alt="LinkedInBot (LinkedIn)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+</div>
+
+**AI agents** -- the fuller roster shown below exists only in an also
+unreleased `0.4.0`; same not-yet-published status as bots above:
+
+<div role="list" aria-label="A sample of AI agent operators the library detects by name" style="display:flex;flex-wrap:wrap;gap:0.6rem;margin:1rem 0 1.5rem;">
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="GPTBot (OpenAI)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/openai.svg" alt="GPTBot (OpenAI)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="ClaudeBot (Anthropic)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/anthropic.svg" alt="ClaudeBot (Anthropic)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="PerplexityBot (Perplexity)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/perplexity.svg" alt="PerplexityBot (Perplexity)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Amazonbot (Amazon)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/amazon.svg" alt="Amazonbot (Amazon)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+<span role="listitem" style="display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;border-radius:8px;background:#f6f6f7;border:1px solid var(--vp-c-divider);" title="Meta-ExternalAgent (Meta)"><img src="https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/icons/meta.svg" alt="Meta-ExternalAgent (Meta)" width="24" height="24" loading="lazy" onerror="this.closest('span').style.display='none'" /></span>
+</div>
+
+Meta appears in both rows above on purpose -- it operates both a documented
+bot (`facebookexternalhit`) and a separate documented AI-agent crawler
+(`Meta-ExternalAgent`), and the library detects them as distinct entries.
+
+Logos via [Simple Icons](https://simpleicons.org) (CC0-1.0, see
+[License](/license) for the full attribution) -- each mark remains its
+respective owner's trademark. Showing a logo here identifies which
+company's crawler/browser a UA string matches; it does not imply that
+company endorses or partners with this library.
 
 ## Parse a User-Agent
 
