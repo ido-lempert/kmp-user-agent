@@ -24,10 +24,13 @@ stepping or fully symbolicated crash traces into the library itself.
 https://github.com/ido-lempert/kmp-user-agent.git
 ```
 
-pick a **released version tag** like `0.2.0` (or "Up to Next Major
-Version") -- never `main` or a commit SHA, since a commit without a
-matching GitHub Release has no binary asset to resolve -- and add the
-`Library` product to your app target.
+pick a **released version tag** (or "Up to Next Major Version") -- never
+`main` or a commit SHA, since a commit without a matching GitHub Release
+has no binary asset to resolve -- and add the `Library` product to your
+app target. `0.2.0` (no `v` prefix) is the first real release; later
+tags use a `v` prefix (e.g. `v0.3.0`) instead -- either form works with
+Xcode's tag picker and with the `from:` version requirement below, since
+SPM matches semver tags regardless of a leading `v`.
 
 ### Package.swift (for a Swift package)
 

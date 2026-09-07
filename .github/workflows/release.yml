@@ -62,7 +62,12 @@ on:
       - 'v*'
 
 permissions:
-  contents: read
+  # Widened from `read` to `write`: only the iOS release step below needs
+  # this (`gh release create` / `gh release upload` require it to create
+  # a GitHub Release and attach an asset). Maven Central and npm
+  # publishing above authenticate with their own separate credentials
+  # (Sonatype/npm secrets), not GITHUB_TOKEN, so they don't need it.
+  contents: write
 
 jobs:
   publish:
@@ -141,3 +146,85 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: ./gradlew :library:publishJsPackageToNpmjsRegistry
+
+      # --- iOS: verify + release --------------------------------------
+      # Rebuilds the XCFramework fresh in CI (NEVER trusts a locally
+      # committed/cached artifact) and zips it exactly the way
+      # scripts/prepare-ios-release.sh and the original 0.2.0 release
+      # process do, then hands the freshly computed checksum to
+      # scripts/verify-ios-checksum.sh, which compares it (and the
+      # committed url's tag segment) against what's committed in
+      # Package.swift's .binaryTarget(name: "Library", ...) call for this
+      # tag. That comparison logic lives in the testable script (see
+      # scripts/verify-ios-checksum.test.sh, run on every push/PR via
+      # ci.yml) rather than being inlined here. This is a safety net
+      # only: it never writes Package.swift itself -- the maintainer
+      # computes and commits that checksum/url by hand (via
+      # scripts/prepare-ios-release.sh) before tagging, since a tag is
+      # immutable and CI can't fix it after the fact. Runs on
+      # macos-latest (this job's runner), which has Xcode/`swift`/`zip`
+      # preinstalled -- the `command -v` checks below are cheap and kept
+      # for consistency with prepare-ios-release.sh's own guards, not
+      # because macos-latest is expected to be missing either.
+      - name: Verify iOS XCFramework checksum matches Package.swift
+        run: |
+          set -euo pipefail
+
+          if ! command -v swift >/dev/null 2>&1; then
+            echo "::error::'swift' command not found on this runner."
+            exit 1
+          fi
+          if ! command -v zip >/dev/null 2>&1; then
+            echo "::error::'zip' command not found on this runner."
+            exit 1
+          fi
+
+          ./gradlew :library:assembleLibraryReleaseXCFramework
+
+          XCFRAMEWORK_DIR="library/build/XCFrameworks/release"
+          ZIP_PATH="${XCFRAMEWORK_DIR}/Library.xcframework.zip"
+
+          rm -f "${ZIP_PATH}"
+          # -x '*.DS_Store': a stray .DS_Store inside the XCFramework
+          # directory (plausible on any macOS runner, including
+          # macos-latest) would produce a different zip/checksum between
+          # two otherwise-identical builds, causing a false mismatch.
+          (cd "${XCFRAMEWORK_DIR}" && zip -r -X Library.xcframework.zip Library.xcframework -x '*.DS_Store')
+
+          COMPUTED_CHECKSUM=$(swift package compute-checksum "${ZIP_PATH}")
+
+          if [ -z "${COMPUTED_CHECKSUM}" ]; then
+            echo "::error::'swift package compute-checksum' produced empty output for ${ZIP_PATH}."
+            exit 1
+          fi
+
+          ./scripts/verify-ios-checksum.sh "${GITHUB_REF_NAME}" "${COMPUTED_CHECKSUM}" Package.swift
+
+      # Creates the GitHub Release for this tag (idempotent -- re-running
+      # after a transient earlier failure won't fail/duplicate) and
+      # uploads the just-verified XCFramework zip as the asset
+      # Package.swift's url expects. Uses the gh CLI (preinstalled on
+      # GitHub-hosted runners) rather than a third-party action. Only
+      # reached if the checksum-verify step above passed: it runs under
+      # `set -euo pipefail` and exits non-zero on any mismatch, and
+      # GitHub Actions skips all later steps in the job by default once a
+      # step fails.
+      - name: Create GitHub Release and upload iOS XCFramework asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          TAG="${GITHUB_REF_NAME}"
+          ZIP_PATH="library/build/XCFrameworks/release/Library.xcframework.zip"
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists; skipping creation."
+          else
+            gh release create "${TAG}" --title "${TAG}" --generate-notes
+          fi
+
+          # --clobber makes the upload idempotent: a re-run after a
+          # transient earlier failure overwrites the same-named asset
+          # instead of failing because it already exists.
+          gh release upload "${TAG}" "${ZIP_PATH}" --clobber

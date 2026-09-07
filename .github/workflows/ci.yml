@@ -32,6 +32,13 @@ jobs:
       - name: Verify release version-check script (fixture tests)
         run: bash scripts/verify-release-version.test.sh
 
+      # Exercises scripts/verify-ios-checksum.sh (release.yml's iOS
+      # checksum/url check, extracted so it's covered here) against
+      # fixture Package.swift files, so a regression is caught on every
+      # push/PR instead of only when a real vX.Y.Z release tag is pushed.
+      - name: Verify iOS checksum-verify script (fixture tests)
+        run: bash scripts/verify-ios-checksum.test.sh
+
       # Fixture tests above only prove the script's logic against synthetic
       # files. Also run it against the real, current library/build.gradle.kts
       # with today's real version as the tag argument, so a regression in
