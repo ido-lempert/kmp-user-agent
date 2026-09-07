@@ -280,7 +280,23 @@
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-github-release-publish-workflow.md`
   summary: No idempotency check for re-pushing the same version tag after it was already staged (or fully released) on Maven Central -- the publish step would just fail with Central Portal's own opaque error rather than a clear repo-side message explaining the tag was already published.
-  evidence: Review-surfaced (edge-case-hunter layer). Central Portal itself rejects re-publishing an already-released version, so this is a UX/clarity gap rather than a correctness risk -- worth a friendlier pre-check if it turns out to bite a real release attempt.
+  evidence: Review-surfaced (edge-case-hunter layer). Central Portal itself rejects re-publishing an already-released version, so this is a UX/clarity gap rather than a correctness risk -- worth a friendlier pre-check if it turns out to bite a real release attempt. **Update (spec-npm-release-publish.md review):** the same gap now also applies to npm, which likewise rejects republishing an existing version with its own opaque error.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-npm-release-publish.md`
+  summary: `release.yml`'s publish job still doesn't gate on `ci.yml`'s build/test job succeeding for the same tag (already tracked against the Maven-only version of this workflow) -- now that npm publishing has been added to the same job, an untested tag can ship to two registries instead of one before this gap is closed.
+  evidence: Review-surfaced (blind-hunter layer). Same root cause and fix shape as the existing entry; noting the increased blast radius here rather than duplicating the entry.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-npm-release-publish.md`
+  summary: No `workflow_dispatch`/manual re-run trigger (already tracked) -- now more painful with two live, network-dependent publish steps in the same job: a transient failure on either one after the other has already succeeded leaves "delete and re-push the tag" as the only recovery path, with no guidance for safely retrying just the failed half.
+  evidence: Review-surfaced (blind-hunter and edge-case-hunter layers). Needs a real design decision (partial-release detection, a targeted re-run mechanism) beyond a mechanical fix.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-npm-release-publish.md`
+  summary: No pre-release-tag support (e.g. `v0.3.0-beta01`) in the version-check regex (already tracked against the Maven-only check) -- the same `[0-9.]*`-only capture now also silently applies to the new npm version check.
+  evidence: Review-surfaced (blind-hunter layer). Not a live issue (no pre-release version in use today); noting the npm check inherited the same limitation rather than tracking it twice.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-npm-release-publish.md`
+  summary: Consider whether the release workflow's growing secret surface (now 6 secrets across two live package-registry publishes in one job) makes the already-tracked "gate behind a GitHub Environment with required reviewers" recommendation more worth doing sooner rather than later.
+  evidence: Review-surfaced (blind-hunter layer). Same recommendation already logged against the Maven-only workflow; flagging increased urgency rather than duplicating the entry.
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-legal-disclaimers-page.md`
   summary: `docs-site/legal.md`'s privacy section doesn't state data retention/erasure guidance for already-collected GA4 analytics data (how long Google retains it, what happens if a visitor withdraws consent after previously accepting) -- specific retention periods depend on the actual GA4 property's admin-panel settings, which this session never configured or inspected.

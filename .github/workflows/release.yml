@@ -1,10 +1,9 @@
-name: Release (Maven Central)
+name: Release (Maven Central + npm)
 
 # =============================================================================
-# Publishes the `site.lempert:user-agent` library to Maven Central when a
-# `vX.Y.Z` tag is pushed. Never runs on a normal push or PR (see `ci.yml` for
-# that). npm publishing is a separate, not-yet-built follow-up -- see
-# `_bmad-output/implementation-artifacts/deferred-work.md`.
+# Publishes the `site.lempert:user-agent` library to Maven Central and the
+# `@lempert/user-agent` package to npm when a `vX.Y.Z` tag is pushed. Never
+# runs on a normal push or PR (see `ci.yml` for that).
 #
 # --- Release semantics (verified against com.vanniktech.maven.publish 0.37.0
 #     source, since `library/build.gradle.kts` calls the bare
@@ -34,7 +33,27 @@ name: Release (Maven Central)
 # `ORG_GRADLE_PROJECT_*` env-var convention):
 #   - ORG_GRADLE_PROJECT_mavenCentralUsername
 #   - ORG_GRADLE_PROJECT_mavenCentralPassword
-# All five must be added before the first real release tag is pushed.
+# npm registry credentials (read by `library/build.gradle.kts`'s
+# `npmPublish { registries { npmjs { authToken.set(providers.environmentVariable("NPM_TOKEN")) } } }`
+# as a plain `NPM_TOKEN` env var -- NOT the `ORG_GRADLE_PROJECT_*` prefix
+# convention used above, which is specific to Gradle properties):
+#   - NPM_TOKEN
+# All six must be added before the first real release tag is pushed.
+#
+# IMPORTANT: NPM_TOKEN should be an npm **Automation**-type token, since
+# unattended CI publish cannot satisfy an interactive one-time password
+# prompt. This is NOT an unconditional guarantee, though -- see
+# `library/build.gradle.kts`'s comment on the `otp.set(...)` line for the
+# full nuance: npm's policy on which token types are exempt from OTP can
+# change, and an "Automation" token may not stay exempt for every account's
+# security settings. Create one at
+# https://www.npmjs.com/settings/<org>/tokens with the "Automation" type.
+# If OTP is still required despite that, the "Publish to npm" step below
+# will fail with npm's own auth/OTP error; the fallback is to publish by
+# hand from a maintainer's terminal with a fresh code:
+#   ./gradlew :library:publishJsPackageToNpmjsRegistry -PnpmOtp=<code>
+# (same escape hatch already documented in build.gradle.kts) until/unless
+# npm's policy or the account's token settings allow unattended publishing.
 # =============================================================================
 
 on:
@@ -64,16 +83,17 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
 
-      - name: Verify tag version matches library/build.gradle.kts coordinates
+      - name: Verify tag version matches library/build.gradle.kts Maven and npm versions
         run: ./scripts/verify-release-version.sh "${GITHUB_REF_NAME}" library/build.gradle.kts
 
-      - name: Verify required Maven Central secrets are present
+      - name: Verify required secrets are present
         env:
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyId }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -uo pipefail
 
@@ -83,6 +103,7 @@ jobs:
           [ -z "${ORG_GRADLE_PROJECT_signingInMemoryKeyId}" ] && missing+=("ORG_GRADLE_PROJECT_signingInMemoryKeyId")
           [ -z "${ORG_GRADLE_PROJECT_mavenCentralUsername}" ] && missing+=("ORG_GRADLE_PROJECT_mavenCentralUsername")
           [ -z "${ORG_GRADLE_PROJECT_mavenCentralPassword}" ] && missing+=("ORG_GRADLE_PROJECT_mavenCentralPassword")
+          [ -z "${NPM_TOKEN}" ] && missing+=("NPM_TOKEN")
 
           if [ "${#missing[@]}" -gt 0 ]; then
             for name in "${missing[@]}"; do
@@ -91,7 +112,7 @@ jobs:
             exit 1
           fi
 
-          echo "All required Maven Central secrets are present."
+          echo "All required secrets are present."
 
       # Stages the release to Maven Central (does not auto-release -- see
       # header comment above). Signing/credentials come from GitHub Secrets
@@ -105,3 +126,18 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
         run: ./gradlew :library:publishToMavenCentral
+
+      # Publishes the js target's dist output as @lempert/user-agent to the
+      # npmjs registry. Uses the org.jetbrains.kotlin.npm-publish plugin's own
+      # standard publish task (confirmed via `./gradlew :library:tasks
+      # --group publishing`) -- deliberately NOT `stagePublishJsPackage`,
+      # which has known bugs (see
+      # `_bmad-output/implementation-artifacts/deferred-work.md`) and is out
+      # of scope to fix here. NPM_TOKEN is read directly by
+      # `library/build.gradle.kts` via `providers.environmentVariable("NPM_TOKEN")`,
+      # so it's passed as a plain env var here, not the ORG_GRADLE_PROJECT_*
+      # Gradle-property convention used for Maven above.
+      - name: Publish to npm
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: ./gradlew :library:publishJsPackageToNpmjsRegistry

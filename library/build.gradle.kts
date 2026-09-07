@@ -729,6 +729,23 @@ npmPublish {
                 // already produces (confirmed missing from package.json otherwise
                 // by unpacking a locally packed tarball).
                 types.set("library.d.mts")
+                // "@lempert/user-agent" is scoped under the "lempert" org
+                // (see `organization.set("lempert")` above), and npm defaults
+                // scoped packages to restricted (private) access unless
+                // publishConfig.access is explicitly "public" in package.json
+                // or --access public is passed at publish time. Neither the
+                // "Publish to npm" workflow step nor a plain
+                // `publishJsPackageToNpmjsRegistry` invocation passes
+                // --access, so without this the very first publish would
+                // fail (npm refuses to silently create a new private-scoped
+                // package on most plans) or, worse, succeed as unlisted/
+                // private. Confirmed missing from the built package.json
+                // otherwise by decompiling the plugin's PackageJson/
+                // PublishConfig classes and inspecting the generated
+                // library/build/registries/npmjs/js/package.json.
+                publishConfig {
+                    access.set("public")
+                }
                 license.set("MIT")
                 homepage.set("https://github.com/ido-lempert/kmp-user-agent")
                 description.set(

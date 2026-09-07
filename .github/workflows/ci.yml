@@ -31,3 +31,29 @@ jobs:
       # instead of only when a real vX.Y.Z release tag is pushed.
       - name: Verify release version-check script (fixture tests)
         run: bash scripts/verify-release-version.test.sh
+
+      # Fixture tests above only prove the script's logic against synthetic
+      # files. Also run it against the real, current library/build.gradle.kts
+      # with today's real version as the tag argument, so a regression in
+      # the real file's shape (e.g. a reformat that breaks the npmPublish
+      # block's brace structure) is caught on every push/PR too, not only
+      # at real tag-push time. NOTE: the version literal below must be
+      # bumped alongside any real coordinates(...)/npmPublish version bump
+      # in library/build.gradle.kts, or this step will start failing.
+      - name: Verify release version-check script (real build.gradle.kts)
+        run: bash scripts/verify-release-version.sh "v0.2.0" library/build.gradle.kts
+
+      # release.yml's "Publish to npm" step hardcodes the Gradle task name
+      # `publishJsPackageToNpmjsRegistry`. Confirm that task still exists
+      # under this exact name on every push/PR, so a future npm-publish
+      # plugin version bump that renames or removes it is caught here
+      # instead of the first signal being a failed live release.
+      - name: Verify npm publish Gradle task name is unchanged
+        run: |
+          set -euo pipefail
+          TASKS_OUTPUT="$(./gradlew :library:tasks --group publishing --all)"
+          echo "$TASKS_OUTPUT"
+          if ! echo "$TASKS_OUTPUT" | grep -q 'publishJsPackageToNpmjsRegistry'; then
+            echo "::error::Expected Gradle task 'publishJsPackageToNpmjsRegistry' not found in ':library:tasks --group publishing --all' output. release.yml's \"Publish to npm\" step references this task name directly -- update it there (and in this check) if the npm-publish plugin renamed it."
+            exit 1
+          fi
