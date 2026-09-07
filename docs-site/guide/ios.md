@@ -135,4 +135,5 @@ for why the underlying detection setup cost doesn't change either way.
 ## Next steps
 
 For the platform-agnostic `UserAgentInfo` model and the built-in type packs
-behind `UserAgentAllTypes` used above, see [Core Concepts](./core-concepts).
+behind `UserAgentAllTypes` used above, see [Core Concepts](./core-concepts)
+-- and the [Type Reference](../reference) for every name each pack recognizes.

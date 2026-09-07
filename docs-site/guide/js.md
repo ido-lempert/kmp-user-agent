@@ -117,4 +117,5 @@ main();
 For the platform-agnostic `UserAgentInfo` model and the built-in type packs
 (including `UserAgentBotTypes`/`UserAgentAIAgentTypes`) behind the
 `UserAgentAllTypes`/`UserAgentBrowserTypes`-style constants used above, see
-[Core Concepts](./core-concepts).
+[Core Concepts](./core-concepts) -- and the [Type Reference](../reference)
+for every name each pack recognizes.

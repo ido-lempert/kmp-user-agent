@@ -73,7 +73,8 @@ categories you don't use:
 `UserAgentBotTypes` and `UserAgentAIAgentTypes` are intentionally
 non-exhaustive starter lists, not a complete bot/AI-agent catalog -- add your
 own entries via a custom `UserAgentTypePack` (see below) for anything not
-covered.
+covered. See the [Type Reference](/reference) for every name each built-in
+pack currently recognizes.
 
 You can pass a subset of packs to only populate the fields you care about:
 

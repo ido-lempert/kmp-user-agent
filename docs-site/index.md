@@ -26,10 +26,13 @@ to [Get started](#get-started).
   categories you need -- browser, engine, OS, device, bots, AI/LLM crawlers.
   There's no implicit fallback pulling in packs you didn't ask for, so a
   bundler can tree-shake the rest out of your JS build.
-- **Bot and AI-agent detection built in.** `UserAgentBotTypes` and
-  `UserAgentAIAgentTypes` recognize a curated starter list of well-known
-  crawlers and LLM agents alongside ordinary browser detection -- not an
-  exhaustive catalog, but extensible (see below) if yours isn't covered yet.
+- **Bot and AI-agent detection, on the way.** `UserAgentInfo` already
+  carries `bot`/`aiAgent` fields, and the library's source already includes
+  `UserAgentBotTypes`/`UserAgentAIAgentTypes` packs recognizing dozens of
+  well-known crawlers and LLM agents -- see the [Type Reference](/reference)
+  for the full current roster and its publish status (not yet in a
+  published release, so the live demo below won't show a match yet even
+  for a real bot's UA string).
 - **Extensible without forking.** Add detection for something the built-in
   packs miss, or override one of their results, via a plain
   `UserAgentTypePack` -- either populate a named field directly, or use the
@@ -58,6 +61,7 @@ string. Leave any filter on "Any (random)" and it's filled in for you.
 
 - [Core Concepts](/guide/core-concepts) -- the shared model and
   pack-composition pattern, explained once.
+- [Type Reference](/reference) -- every name each built-in pack recognizes.
 - [Browser & Node.js](/guide/js) -- for JavaScript or TypeScript.
 - [Android](/guide/android) or [JVM](/guide/jvm) -- for Kotlin.
 - [iOS](/guide/ios) -- for Swift.

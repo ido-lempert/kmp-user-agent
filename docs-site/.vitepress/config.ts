@@ -12,6 +12,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Core Concepts', link: '/guide/core-concepts' },
+      { text: 'Reference', link: '/reference' },
       { text: 'Browser & Node.js (JS)', link: '/guide/js' },
       { text: 'Android', link: '/guide/android' },
       { text: 'iOS', link: '/guide/ios' },
@@ -29,6 +30,10 @@ export default defineConfig({
           { text: 'iOS', link: '/guide/ios' },
           { text: 'JVM', link: '/guide/jvm' },
         ],
+      },
+      {
+        text: 'Reference',
+        items: [{ text: 'Type Reference', link: '/reference' }],
       },
       {
         text: 'Legal',
