@@ -60,7 +60,9 @@ val userAgentString = generate(info)
 ### Built-in packs
 
 Each is individually importable, so a bundler can tree-shake out detection
-categories you don't use:
+categories you don't use -- verified for webpack/esbuild-style bundlers; the
+[React Native guide](../guide/react-native#bundle-size-and-tree-shaking-under-metro)
+documents one known exception (Metro's default config):
 
 * `UserAgentBrowserTypes` -- populates `UserAgentInfo.browser`
 * `UserAgentEngineTypes` -- populates `UserAgentInfo.engine`

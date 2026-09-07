@@ -4,6 +4,11 @@
 to npm straight from the library's own Kotlin/JS target -- the same
 detection/generation logic used by every other platform.
 
+Building a React Native app specifically? Everything below applies the same
+way (it's the same npm package), but see the
+[React Native guide](./react-native) first for what's actually different
+under Metro/Hermes -- verified by real bundling and execution, not assumed.
+
 ## Install
 
 ```sh

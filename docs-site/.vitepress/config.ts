@@ -14,6 +14,7 @@ export default defineConfig({
       { text: 'Core Concepts', link: '/guide/core-concepts' },
       { text: 'Reference', link: '/reference' },
       { text: 'Browser & Node.js (JS)', link: '/guide/js' },
+      { text: 'React Native', link: '/guide/react-native' },
       { text: 'Android', link: '/guide/android' },
       { text: 'iOS', link: '/guide/ios' },
       { text: 'JVM', link: '/guide/jvm' },
@@ -26,6 +27,7 @@ export default defineConfig({
         items: [
           { text: 'Core Concepts', link: '/guide/core-concepts' },
           { text: 'Browser & Node.js (JS)', link: '/guide/js' },
+          { text: 'React Native', link: '/guide/react-native' },
           { text: 'Android', link: '/guide/android' },
           { text: 'iOS', link: '/guide/ios' },
           { text: 'JVM', link: '/guide/jvm' },

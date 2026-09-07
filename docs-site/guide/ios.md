@@ -99,7 +99,7 @@ let parsed = UserAgentParserKt.UserAgentParser(packs: packs)(sampleUserAgent)
 // Every field is a Swift Optional (Kotlin's nullable `Component?`/`Device?`
 // bridge directly to `Component?`/`Device?` in Swift) -- unwrap before use
 // the same way you would any other Optional.
-print(parsed.browser)  // e.g. Optional(Component(name: Safari, version: 17.5))
+print(parsed.browser)  // e.g. Optional(Component(name: Mobile Safari, version: 17.5))
 print(parsed.engine)
 print(parsed.os)
 print(parsed.device)

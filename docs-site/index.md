@@ -28,11 +28,14 @@ to [Get started](#get-started).
   return the exact same results everywhere -- see
   [Core Concepts](/guide/core-concepts) for the shared model (the language
   bindings differ slightly per platform; each platform guide shows the
-  real syntax).
+  real syntax). React Native isn't a fifth target here -- it's the same JS
+  build as [Browser & Node.js](/guide/js), verified separately under Metro
+  and Hermes; see its own [guide](/guide/react-native).
 - **Composable, tree-shakeable type packs.** Pull in only the detection
   categories you need -- browser, engine, OS, device, bots, AI/LLM crawlers.
   There's no implicit fallback pulling in packs you didn't ask for, so a
-  bundler can tree-shake the rest out of your JS build.
+  bundler can tree-shake the rest out of your JS build (verified for
+  webpack/esbuild; [React Native's Metro is one known exception](/guide/react-native#bundle-size-and-tree-shaking-under-metro)).
 - **Bot and AI-agent detection, on the way.** `UserAgentInfo` already
   carries `bot`/`aiAgent` fields, and the library's source already includes
   `UserAgentBotTypes`/`UserAgentAIAgentTypes` packs recognizing dozens of
@@ -130,6 +133,7 @@ string. Leave any filter on "Any (random)" and it's filled in for you.
 - [Core Concepts](/guide/core-concepts) -- the shared model and
   pack-composition pattern, explained once.
 - [Type Reference](/reference) -- every name each built-in pack recognizes.
-- [Browser & Node.js](/guide/js) -- for JavaScript or TypeScript.
+- [Browser & Node.js](/guide/js) or [React Native](/guide/react-native) --
+  for JavaScript or TypeScript.
 - [Android](/guide/android) or [JVM](/guide/jvm) -- for Kotlin.
 - [iOS](/guide/ios) -- for Swift.
