@@ -6,7 +6,7 @@ import { defineConfig } from 'vitepress';
 export default defineConfig({
   title: 'kmp-user-agent',
   description:
-    'Parse and generate User-Agent strings across Android, iOS, JVM, and JS from one Kotlin Multiplatform library.',
+    'One Kotlin Multiplatform library that parses and generates User-Agent strings with the same logic and results on Android, iOS, JVM, and JS.',
   cleanUrls: true,
 
   themeConfig: {

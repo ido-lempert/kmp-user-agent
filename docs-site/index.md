@@ -5,21 +5,41 @@ import GenerateDemo from './src/demo/GenerateDemo.vue';
 
 # kmp-user-agent
 
-Parse and generate User-Agent strings across Android, iOS, JVM, and JS from
-one Kotlin Multiplatform library, behind a single composable API.
+**One Kotlin Multiplatform library that parses and generates User-Agent
+strings with the same logic and results on Android, iOS, JVM, and JS** -- so
+you stop hand-rolling UA regex per platform, and stop finding out your
+detection logic silently diverges on the one platform nobody tested it on.
 
-See [Core Concepts](/guide/core-concepts) for the shared model and
-pack-composition pattern, then the [Browser & Node.js guide](/guide/js) to
-get started from JavaScript or TypeScript, the [Android guide](/guide/android)
-or [JVM guide](/guide/jvm) to get started from Kotlin, or the
-[iOS guide](/guide/ios) to get started from Swift. See [License](/license)
-for this library's MIT license and its one piece of vendored third-party
-data.
+The proof is below: not a mockup, your own browser, parsed right now by the
+real, published `@lempert/user-agent` package. Already sold? Jump straight
+to [Get started](#get-started).
 
-## Try it live
+## Why kmp-user-agent
 
-This isn't a mockup -- it's your own browser, parsed right now by the real,
-published `@lempert/user-agent` package.
+- **One shared implementation, four platforms.** `UserAgentParser`/
+  `UserAgentGenerator` run the exact same detection/generation logic and
+  return the exact same results everywhere -- see
+  [Core Concepts](/guide/core-concepts) for the shared model (the language
+  bindings differ slightly per platform; each platform guide shows the
+  real syntax).
+- **Composable, tree-shakeable type packs.** Pull in only the detection
+  categories you need -- browser, engine, OS, device, bots, AI/LLM crawlers.
+  There's no implicit fallback pulling in packs you didn't ask for, so a
+  bundler can tree-shake the rest out of your JS build.
+- **Bot and AI-agent detection built in.** `UserAgentBotTypes` and
+  `UserAgentAIAgentTypes` recognize a curated starter list of well-known
+  crawlers and LLM agents alongside ordinary browser detection -- not an
+  exhaustive catalog, but extensible (see below) if yours isn't covered yet.
+- **Extensible without forking.** Add detection for something the built-in
+  packs miss, or override one of their results, via a plain
+  `UserAgentTypePack` -- either populate a named field directly, or use the
+  open-ended `custom` map for anything that doesn't fit one.
+- **MIT-licensed and actually published.** A real npm package backs both
+  demos on this page; the same logic ships to Maven Central for
+  Android/iOS/JVM. See [License](/license) for the full license and
+  third-party attribution.
+
+## Parse a User-Agent
 
 <ParseDemo />
 
@@ -28,9 +48,16 @@ published `@lempert/user-agent` package.
 ## Generate a User-Agent
 
 Pick browser/engine/OS/device filters and generate a plausible User-Agent
-string -- also via the real, published `@lempert/user-agent` package. Leave
-any filter on "Any (random)" and it's filled in for you.
+string. Leave any filter on "Any (random)" and it's filled in for you.
 
 <GenerateDemo />
 
 <noscript>This demo requires JavaScript to generate a User-Agent string -- it won't run with JavaScript disabled.</noscript>
+
+## Get started
+
+- [Core Concepts](/guide/core-concepts) -- the shared model and
+  pack-composition pattern, explained once.
+- [Browser & Node.js](/guide/js) -- for JavaScript or TypeScript.
+- [Android](/guide/android) or [JVM](/guide/jvm) -- for Kotlin.
+- [iOS](/guide/ios) -- for Swift.
