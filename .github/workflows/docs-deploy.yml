@@ -103,6 +103,30 @@ jobs:
             exit 1
           fi
 
+      # Protects the load-bearing script ordering the config.ts comments
+      # call out (spec-google-analytics-consent-mode.md): the
+      # `gtag('consent', 'default', ...)` script MUST appear before the
+      # googletagmanager.com/gtag/js loader tag in the actual built HTML, or
+      # Consent Mode v2 doesn't gate collection at all. Inspecting the real
+      # built artifact -- not the source config.ts -- catches a bundler/head
+      # reordering regression that source inspection alone would miss, same
+      # pattern as the two dist-inspection checks above.
+      - name: Check GA consent-default script precedes gtag.js loader in dist
+        working-directory: docs-site
+        run: |
+          DIST_INDEX=".vitepress/dist/index.html"
+          CONSENT_OFFSET=$(grep -bo 'gtag("consent","default"' "$DIST_INDEX" | head -1 | cut -d: -f1)
+          GTAG_JS_OFFSET=$(grep -bo 'googletagmanager.com/gtag/js' "$DIST_INDEX" | head -1 | cut -d: -f1)
+          if [ -z "$CONSENT_OFFSET" ] || [ -z "$GTAG_JS_OFFSET" ]; then
+            echo "::error::Could not find both the consent-default script (gtag(\"consent\",\"default\") and the gtag.js loader (googletagmanager.com/gtag/js) in $DIST_INDEX -- expected both present in a production build."
+            exit 1
+          fi
+          if [ "$CONSENT_OFFSET" -ge "$GTAG_JS_OFFSET" ]; then
+            echo "::error::Consent Mode v2 ordering violated in $DIST_INDEX: the consent-default script (byte offset $CONSENT_OFFSET) does not precede the gtag.js loader script tag (byte offset $GTAG_JS_OFFSET). This defeats Consent Mode -- gtag.js must never load before consent defaults are set."
+            exit 1
+          fi
+          echo "OK: consent-default script (offset $CONSENT_OFFSET) precedes gtag.js loader (offset $GTAG_JS_OFFSET)."
+
       # None of the checks above can see GenerateDemo.vue's merge-and-retry
       # logic (spec-5-4-live-generate-demo.md, review_loop_iteration 1): it
       # only runs client-side inside onMounted/on click, never during the
@@ -115,6 +139,17 @@ jobs:
       - name: Verify generate-demo merge logic
         working-directory: docs-site
         run: node scripts/verify-generate-demo.mjs
+
+      # Same rationale as the step above, for ConsentBanner.vue's
+      # onMounted decision logic (spec-google-analytics-consent-mode.md):
+      # it only runs client-side, so none of the SSR-build-output checks
+      # above can see it. This script exercises the extracted,
+      # framework-free decideConsentOnMount directly and fails the job if
+      # banner visibility or the granted-signals consent-update call ever
+      # stops matching the stored choice.
+      - name: Verify consent banner decision logic
+        working-directory: docs-site
+        run: node scripts/verify-consent-decision.mjs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5

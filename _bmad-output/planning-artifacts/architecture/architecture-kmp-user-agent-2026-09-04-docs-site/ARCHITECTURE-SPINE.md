@@ -84,7 +84,7 @@ flowchart TD
 | --- | --- |
 | Naming | Site root `docs-site/`; guide pages under `docs-site/guide/{android,ios,jvm,js,core-concepts}.md`; demo components under `docs-site/src/demo/`. No naming overlap with the library's `library/` module. |
 | Data & formats | The generate-support matrix (AD-3) is TypeScript, not JSON, so its header comment (pointing at `UserAgentGenerator.kt`) travels with the data and survives refactors. |
-| State & cross-cutting | Demo components hold only local UI state (selected filters); no site-side persistence, no analytics/tracking beyond whatever GitHub Pages provides by default. |
+| State & cross-cutting | Demo components hold only local UI state (selected filters); no site-side persistence beyond the GA consent choice below. Google Analytics 4 (`G-1TGW366KHQ`) is loaded site-wide via Consent Mode v2 -- all four signals (`ad_storage`, `ad_user_data`, `ad_personalization`, `analytics_storage`) default to `denied` in an inline `head` script (`docs-site/.vitepress/config.ts`) that runs before `gtag.js` loads; a two-button accept/reject banner (`docs-site/src/theme/ConsentBanner.vue`, injected via `docs-site/.vitepress/theme/index.ts`) calls `gtag('consent', 'update', ...)` on Accept and persists the visitor's choice in `localStorage`. This deliberately supersedes the prior "no analytics/tracking beyond whatever GitHub Pages provides by default" convention (superseded per `spec-google-analytics-consent-mode.md`). |
 
 ## Stack
 

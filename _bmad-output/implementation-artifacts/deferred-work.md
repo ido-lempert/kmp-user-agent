@@ -234,6 +234,30 @@
   summary: The XCFramework has no `iosX64` (Intel simulator) slice -- a pre-existing limitation of `library/build.gradle.kts`'s iOS target list (predates this story), now user-visible for the first time via real SPM distribution rather than being invisible KMP-Gradle-only scope.
   evidence: Confirmed via `library/build.gradle.kts`; not caused by this story. Now documented as a caveat in `docs-site/guide/ios.md`. Adding `iosX64` would require extending the library's own MVP target list, a separate decision beyond this story's scope.
 
+- source_spec: `_bmad-output/implementation-artifacts/spec-google-analytics-consent-mode.md`
+  summary: Add a persistent "change your consent" control (e.g. a footer link) so visitors can revisit/withdraw their GA consent choice after the initial decision, plus a version/timestamp on the stored choice so a future privacy-policy or tracker change can force re-prompting returning visitors.
+  evidence: Review-surfaced (blind-hunter layer). GDPR guidance expects withdrawing consent to be as easy as giving it; the current implementation only asks once and offers no way back short of manually clearing browser storage. Deliberately out of this spec's frozen scope (`Never: do not build a full CMP`), but a minimal revisit link is a smaller ask than a full CMP and worth a follow-up.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-google-analytics-consent-mode.md`
+  summary: Track VitePress's client-side SPA route changes as GA `page_view` events -- currently `gtag('config', ...)` fires once on the initial hard page load only, so in-app navigation between docs pages (VitePress's normal navigation mode) is invisible to analytics.
+  evidence: Review-surfaced (blind-hunter and edge-case-hunter layers, independently). Fixing this means wiring VitePress's router `onAfterRouteChanged` hook to fire manual `page_view` events, which is a small design decision (event shape, whether to disable GA's automatic pageview) rather than a mechanical fix -- left for a follow-up rather than patched into this spec's minimal scope.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-google-analytics-consent-mode.md`
+  summary: Respect browser-level privacy opt-out signals (Global Privacy Control / Do Not Track) by treating their presence as an implicit "reject" -- skipping the banner and never granting consent -- since some jurisdictions (e.g. California CPRA) require honoring GPC automatically regardless of on-page UI.
+  evidence: Review-surfaced (blind-hunter layer). Current implementation only gates on the visitor's own banner click, with no GPC/DNT check anywhere in `ConsentBanner.vue`.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-google-analytics-consent-mode.md`
+  summary: Link the consent banner's text to the site's privacy/analytics disclosure page once it exists, and document there that Consent Mode v2 runs in "Advanced" mode -- `gtag.js` loads and Google receives cookieless conversion-modeling pings even pre-consent, which is a real, undocumented tradeoff of the current setup.
+  evidence: Review-surfaced (blind-hunter layer). The banner currently has no link explaining what's collected or why; this ties directly into the separate legal-disclaimers/privacy-notice feature already planned as this session's next item, which is the natural place to close this gap.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-google-analytics-consent-mode.md`
+  summary: Add cross-tab consent-choice sync (a `window` `storage` event listener in `ConsentBanner.vue`) so accepting or rejecting in one open tab updates `gtag` consent state and banner visibility in the site's other open tabs, instead of only reading the stored choice once on mount per tab.
+  evidence: Review-surfaced (edge-case-hunter layer). Minor UX inconsistency (a visitor with two tabs open could see the banner in one after already accepting in the other), not a compliance risk since Consent Mode still defaults safely to denied in the un-synced tab.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-google-analytics-consent-mode.md`
+  summary: Verify (or extend) the consent-banner injection point if a future docs-site page ever opts out of the default VitePress layout via `layout: false` frontmatter, since `ConsentBanner` is currently injected only through `DefaultTheme.Layout`'s `layout-bottom` slot and such a page would never render it.
+  evidence: Review-surfaced (edge-case-hunter layer). No page in the site currently sets `layout: false`, so this is latent rather than a live gap today.
+
 - source_spec: none
   summary: Add a React Native usage guide to docs-site, following the same per-platform pattern as the Android/iOS/JVM guides.
   evidence: Split from a combined "docs-site expansion" ask (2026-09-06) covering 8 distinct deliverables; this one carries its own open question -- whether the published `@lempert/user-agent` npm package actually resolves and runs under Metro/Hermes -- which needs verifying before the guide's content (or its viability) can be written, unlike the already-planned JVM guide picked as this round's first goal.
