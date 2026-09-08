@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import java.io.File
+import java.net.URI
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -695,6 +696,19 @@ npmPublish {
 
     registries {
         npmjs {
+            // Override the plugin's own default registry URI
+            // ("https://registry.npmjs.org/", trailing slash) with a
+            // slash-free one. The 2026-09-08 v0.3.0 release attempt failed
+            // with `npm error 404 ... PUT https://registry.npmjs.org//...`
+            // (note the doubled slash) -- npm's own "Publishing to ..." log
+            // line showed the doubled slash already present in the
+            // registry value it resolved, which points at this plugin
+            // concatenating an extra "/" onto its own already-slash-terminated
+            // default rather than npm doing anything wrong. Confirmed via
+            // decompiling npm-publish-gradle-plugin 3.7.0's
+            // NpmPublishExtension.npmjs$lambda$0, which hardcodes
+            // `uri.set(URI("https://registry.npmjs.org/"))`.
+            uri.set(URI("https://registry.npmjs.org"))
             authToken.set(providers.environmentVariable("NPM_TOKEN"))
             // npmjs.org now requires a one-time password for publishing on
             // accounts where the configured token isn't exempt from 2FA (e.g.
