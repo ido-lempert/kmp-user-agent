@@ -151,10 +151,21 @@ jobs:
       # the Gradle-toolchain-managed Node used by the steps above (its
       # exact npm version/path is a Gradle internal, not guaranteed
       # OIDC-capable). Node 24 bundles npm 11+, well above the 11.5.1
-      # minimum Trusted Publishing requires.
+      # minimum Trusted Publishing requires (per npm's own docs:
+      # https://docs.npmjs.com/trusted-publishers/).
+      #
+      # `registry-url` is REQUIRED, not cosmetic -- without it,
+      # actions/setup-node writes no .npmrc at all, so npm CLI has
+      # nothing to hook its OIDC exchange into and fails with a plain
+      # ENEEDAUTH ("need auth ... npm adduser"), confirmed by this
+      # session's first OIDC attempt (which omitted this and failed
+      # exactly that way). `package-manager-cache: false` matches npm's
+      # own documented example for release builds.
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
 
       # Publishes the js target's dist output as @lempert/user-agent to
       # the npmjs registry via a direct `npm publish`, deliberately NOT
