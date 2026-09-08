@@ -13,7 +13,7 @@ import PackageDescription
 // (confirmed by a real compile error: "'v15' is unavailable ... introduced
 // in PackageDescription 5.5" when this was still pinned at 5.3).
 //
-// The binaryTarget points at a GitHub Release asset for tag v0.3.0 (v-prefixed
+// The binaryTarget points at a GitHub Release asset for tag v0.4.0 (v-prefixed
 // going forward, unlike the historical bare "0.2.0" tag -- see
 // docs-site/guide/ios.md; SPM resolves both forms identically). The URL
 // is deterministic from the tag name and does not require the release to
@@ -35,7 +35,7 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "Library",
-            url: "https://github.com/ido-lempert/kmp-user-agent/releases/download/v0.3.0/Library.xcframework.zip",
+            url: "https://github.com/ido-lempert/kmp-user-agent/releases/download/v0.4.0/Library.xcframework.zip",
             checksum: "a71d391badd5f59c41cd021dedbf4a92130b1cf0d59dac9a7049e9e4fb5cc799"
         )
     ]

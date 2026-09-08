@@ -637,7 +637,7 @@ mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
 
-    coordinates("site.lempert", "user-agent", "0.3.0")
+    coordinates("site.lempert", "user-agent", "0.4.0")
 
     pom {
         name.set("user-agent")
@@ -726,7 +726,7 @@ npmPublish {
     packages {
         named("js") {
             packageName.set("user-agent")
-            version.set("0.3.0")
+            version.set("0.4.0")
             readme.set(rootProject.layout.projectDirectory.file("README.md"))
 
             // NOTICE/LICENSE aren't part of the js target's own dist output, so

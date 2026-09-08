@@ -6,7 +6,7 @@ This project is pre-1.0: per semantic versioning's pre-1.0 convention, a minor
 version bump (e.g. 0.1.0 -> 0.2.0) signals a breaking change, since there is no
 major version above 0 left to bump for that purpose.
 
-## Unreleased (targeting 0.4.0)
+## 0.4.0 - 2026-09-08
 
 ### Added: broadened bot and AI-agent rosters
 
