@@ -61,8 +61,17 @@ name: Release (Maven Central + npm)
 #      precedence over and prevents npm CLI's native OIDC auto-detection.
 #      `./gradlew :library:assembleJsPackage` still produces the package
 #      contents; only the actual publish step bypasses the plugin.
-# No NPM_TOKEN secret is required for this. The five ORG_GRADLE_PROJECT_*
-# secrets below remain required for Maven Central.
+# No NPM_TOKEN secret is required for this -- an earlier, since-removed
+# NPM_TOKEN secret sitting in the repo appears to have interfered with
+# OIDC resolution (or its removal simply coincided with the Trusted
+# Publisher config finishing propagation; the exact mechanism wasn't
+# isolated). Confirmed working end-to-end on 2026-09-08: a rerun against
+# the already-published v0.4.0 tag correctly failed with npm's own "You
+# cannot publish over the previously published versions" error rather
+# than the masked 404 auth-rejection seen in every earlier attempt --
+# i.e. OIDC auth succeeded and only the expected duplicate-version check
+# rejected it. The five ORG_GRADLE_PROJECT_* secrets below remain
+# required for Maven Central.
 # =============================================================================
 
 on:
@@ -159,13 +168,15 @@ jobs:
       # nothing to hook its OIDC exchange into and fails with a plain
       # ENEEDAUTH ("need auth ... npm adduser"), confirmed by this
       # session's first OIDC attempt (which omitted this and failed
-      # exactly that way). `package-manager-cache: false` matches npm's
-      # own documented example for release builds.
+      # exactly that way). No `cache` input -- v4.x's `cache` expects a
+      # package-manager name (e.g. "npm"), not a boolean; omitting it
+      # already means no caching, matching npm's own documented example
+      # ("package-manager-cache: false") for release builds, which is a
+      # v5+ input name this workflow doesn't use.
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
-          package-manager-cache: false
 
       # Publishes the js target's dist output as @lempert/user-agent to
       # the npmjs registry via a direct `npm publish`, deliberately NOT
