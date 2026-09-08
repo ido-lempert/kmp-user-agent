@@ -33,27 +33,36 @@ name: Release (Maven Central + npm)
 # `ORG_GRADLE_PROJECT_*` env-var convention):
 #   - ORG_GRADLE_PROJECT_mavenCentralUsername
 #   - ORG_GRADLE_PROJECT_mavenCentralPassword
-# npm registry credentials (read by `library/build.gradle.kts`'s
-# `npmPublish { registries { npmjs { authToken.set(providers.environmentVariable("NPM_TOKEN")) } } }`
-# as a plain `NPM_TOKEN` env var -- NOT the `ORG_GRADLE_PROJECT_*` prefix
-# convention used above, which is specific to Gradle properties):
-#   - NPM_TOKEN
-# All six must be added before the first real release tag is pushed.
-#
-# IMPORTANT: NPM_TOKEN should be an npm **Automation**-type token, since
-# unattended CI publish cannot satisfy an interactive one-time password
-# prompt. This is NOT an unconditional guarantee, though -- see
-# `library/build.gradle.kts`'s comment on the `otp.set(...)` line for the
-# full nuance: npm's policy on which token types are exempt from OTP can
-# change, and an "Automation" token may not stay exempt for every account's
-# security settings. Create one at
-# https://www.npmjs.com/settings/<org>/tokens with the "Automation" type.
-# If OTP is still required despite that, the "Publish to npm" step below
-# will fail with npm's own auth/OTP error; the fallback is to publish by
-# hand from a maintainer's terminal with a fresh code:
-#   ./gradlew :library:publishJsPackageToNpmjsRegistry -PnpmOtp=<code>
-# (same escape hatch already documented in build.gradle.kts) until/unless
-# npm's policy or the account's token settings allow unattended publishing.
+# npm publishing: uses npm Trusted Publishing (OIDC) -- NOT a static
+# NPM_TOKEN secret. Real-world discovery from this session's first live
+# release attempts: this npm account requires interactive 2FA approval for
+# publishing (confirmed by the maintainer -- a plain `npm publish` from
+# their own machine opens a browser tab for approval), which a static
+# token (even an "Automation"-type one) cannot satisfy unattended --
+# npm's registry masks that rejection as a misleading `404 Not Found`
+# rather than a clear auth error. A Trusted Publisher was configured on
+# npmjs.com for `@lempert/user-agent` (Settings -> Trusted Publisher),
+# pointing at this exact repo (`ido-lempert/kmp-user-agent`) and this
+# exact workflow filename (`release.yml`), with "npm publish"/"npm stage
+# publish" permissions and no GitHub Environment restriction. That
+# requires:
+#   1. `permissions.id-token: write` below, so the job can request a
+#      short-lived OIDC token from GitHub.
+#   2. A modern npm CLI (11.5.1+) on PATH that auto-detects the GitHub
+#      Actions OIDC environment and exchanges it for a publish token --
+#      via `actions/setup-node` below, NOT the Gradle-toolchain-managed
+#      Node used elsewhere in this job, since that version isn't
+#      guaranteed OIDC-capable and its exact path is a Gradle internal.
+#   3. Publishing via a direct `npm publish` command (see the "Publish to
+#      npm" step) rather than the Gradle plugin's own
+#      `publishJsPackageToNpmjsRegistry` task -- that task always writes
+#      an explicit auth token into its generated `.npmrc`
+#      (`library/build.gradle.kts`'s `authToken.set(...)`), which takes
+#      precedence over and prevents npm CLI's native OIDC auto-detection.
+#      `./gradlew :library:assembleJsPackage` still produces the package
+#      contents; only the actual publish step bypasses the plugin.
+# No NPM_TOKEN secret is required for this. The five ORG_GRADLE_PROJECT_*
+# secrets below remain required for Maven Central.
 # =============================================================================
 
 on:
@@ -64,10 +73,15 @@ on:
 permissions:
   # Widened from `read` to `write`: only the iOS release step below needs
   # this (`gh release create` / `gh release upload` require it to create
-  # a GitHub Release and attach an asset). Maven Central and npm
-  # publishing above authenticate with their own separate credentials
-  # (Sonatype/npm secrets), not GITHUB_TOKEN, so they don't need it.
+  # a GitHub Release and attach an asset). Maven Central publishing
+  # authenticates with its own separate Sonatype secrets, not
+  # GITHUB_TOKEN, so it doesn't need this.
   contents: write
+  # Required for npm Trusted Publishing (OIDC) -- lets this job request a
+  # short-lived OIDC token from GitHub, which npm CLI 11.5.1+ auto-detects
+  # and exchanges for a scoped, single-use publish token. See the header
+  # comment above for the full npm-publishing explanation.
+  id-token: write
 
 jobs:
   publish:
@@ -98,17 +112,18 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyId }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -uo pipefail
 
+          # NPM_TOKEN is intentionally not checked here -- npm publishing
+          # uses Trusted Publishing (OIDC), not a static token secret. See
+          # this workflow's header comment.
           missing=()
           [ -z "${ORG_GRADLE_PROJECT_signingInMemoryKey}" ] && missing+=("ORG_GRADLE_PROJECT_signingInMemoryKey")
           [ -z "${ORG_GRADLE_PROJECT_signingInMemoryKeyPassword}" ] && missing+=("ORG_GRADLE_PROJECT_signingInMemoryKeyPassword")
           [ -z "${ORG_GRADLE_PROJECT_signingInMemoryKeyId}" ] && missing+=("ORG_GRADLE_PROJECT_signingInMemoryKeyId")
           [ -z "${ORG_GRADLE_PROJECT_mavenCentralUsername}" ] && missing+=("ORG_GRADLE_PROJECT_mavenCentralUsername")
           [ -z "${ORG_GRADLE_PROJECT_mavenCentralPassword}" ] && missing+=("ORG_GRADLE_PROJECT_mavenCentralPassword")
-          [ -z "${NPM_TOKEN}" ] && missing+=("NPM_TOKEN")
 
           if [ "${#missing[@]}" -gt 0 ]; then
             for name in "${missing[@]}"; do
@@ -132,20 +147,36 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
         run: ./gradlew :library:publishToMavenCentral
 
-      # Publishes the js target's dist output as @lempert/user-agent to the
-      # npmjs registry. Uses the org.jetbrains.kotlin.npm-publish plugin's own
-      # standard publish task (confirmed via `./gradlew :library:tasks
-      # --group publishing`) -- deliberately NOT `stagePublishJsPackage`,
-      # which has known bugs (see
-      # `_bmad-output/implementation-artifacts/deferred-work.md`) and is out
-      # of scope to fix here. NPM_TOKEN is read directly by
-      # `library/build.gradle.kts` via `providers.environmentVariable("NPM_TOKEN")`,
-      # so it's passed as a plain env var here, not the ORG_GRADLE_PROJECT_*
-      # Gradle-property convention used for Maven above.
+      # Modern Node/npm on PATH for OIDC-based Trusted Publishing -- NOT
+      # the Gradle-toolchain-managed Node used by the steps above (its
+      # exact npm version/path is a Gradle internal, not guaranteed
+      # OIDC-capable). Node 24 bundles npm 11+, well above the 11.5.1
+      # minimum Trusted Publishing requires.
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+
+      # Publishes the js target's dist output as @lempert/user-agent to
+      # the npmjs registry via a direct `npm publish`, deliberately NOT
+      # the org.jetbrains.kotlin.npm-publish plugin's own
+      # `publishJsPackageToNpmjsRegistry` task (that task's generated
+      # `.npmrc` always carries an explicit auth token, which pre-empts
+      # npm CLI's native OIDC auto-detection) and NOT
+      # `stagePublishJsPackage`, which has known bugs (see
+      # `_bmad-output/implementation-artifacts/deferred-work.md`) and is
+      # out of scope to fix here. `assembleJsPackage` produces the same
+      # package contents (including the `publishConfig.access: "public"`
+      # fix already in `library/build.gradle.kts`) that the Gradle
+      # plugin's own task would have published. No NPM_TOKEN needed --
+      # npm CLI reads GitHub's ACTIONS_ID_TOKEN_REQUEST_* env vars
+      # (present because of `permissions.id-token: write` above) and
+      # exchanges them against the Trusted Publisher configured on
+      # npmjs.com for this exact repo + workflow filename.
       - name: Publish to npm
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: ./gradlew :library:publishJsPackageToNpmjsRegistry
+        run: |
+          ./gradlew :library:assembleJsPackage
+          cd library/build/packages/js
+          npm publish --access=public
 
       # --- iOS: verify + release --------------------------------------
       # Rebuilds the XCFramework fresh in CI (NEVER trusts a locally
